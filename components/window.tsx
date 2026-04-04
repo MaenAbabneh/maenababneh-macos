@@ -17,6 +17,8 @@ import Spotify from "@/components/apps/spotify";
 import Snake from "@/components/apps/snake";
 import Weather from "@/components/apps/weather";
 import { WINDOW_MIN_SIZE } from "@/constants/window-config";
+import { useDesktopStore } from "@/store/useDesktopStore";
+import { useIsDarkMode } from "@/hooks/use-is-dark-mode";
 
 const componentMap: Record<
   string,
@@ -38,24 +40,36 @@ const componentMap: Record<
 interface WindowProps {
   window: AppWindow;
   isActive: boolean;
-  onClose: () => void;
-  onFocus: () => void;
-  isDarkMode: boolean;
+  windowId: string;
 }
 
 export default function Window({
   window: appWindow,
   isActive,
-  onClose,
-  onFocus,
-  isDarkMode,
+  windowId,
 }: WindowProps) {
-  const [position, setPosition] = useState(appWindow.position);
-  const [size, setSize] = useState(appWindow.size);
+  const closeWindow = useDesktopStore((s) => s.closeWindow);
+  const focusWindow = useDesktopStore((s) => s.focusWindow);
+  const { isDarkMode } = useIsDarkMode();
+
+  // Base geometry comes from the store (via props). We only keep draft geometry
+  // locally during drag/resize to avoid frequent store writes.
+  const [draftPosition, setDraftPosition] = useState<
+    AppWindow["position"] | null
+  >(null);
+  const [draftSize, setDraftSize] = useState<AppWindow["size"] | null>(null);
+  const position = draftPosition ?? appWindow.position;
+  const size = draftSize ?? appWindow.size;
+
+  const positionRef = useRef(position);
+  const sizeRef = useRef(size);
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [isMaximized, setIsMaximized] = useState(false);
-  const [preMaximizeState, setPreMaximizeState] = useState({ position, size });
+  const [preMaximizeState, setPreMaximizeState] = useState({
+    position: appWindow.position,
+    size: appWindow.size,
+  });
   const [isResizing, setIsResizing] = useState(false);
   const [resizeDirection, setResizeDirection] = useState<string | null>(null);
   const [resizeStartPos, setResizeStartPos] = useState({ x: 0, y: 0 });
@@ -68,10 +82,21 @@ export default function Window({
 
   const AppComponent = componentMap[appWindow.component];
 
+  const setWindowPosition = useDesktopStore((s) => s.setWindowPosition);
+  const setWindowSize = useDesktopStore((s) => s.setWindowSize);
+
+  useEffect(() => {
+    positionRef.current = position;
+  }, [position]);
+
+  useEffect(() => {
+    sizeRef.current = size;
+  }, [size]);
+
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       if (isDragging) {
-        setPosition({
+        setDraftPosition({
           x: e.clientX - dragOffset.x,
           y: e.clientY - dragOffset.y,
         });
@@ -110,9 +135,9 @@ export default function Window({
           }
         }
 
-        setSize({ width: newWidth, height: newHeight });
+        setDraftSize({ width: newWidth, height: newHeight });
         if (resizeDirection.includes("w") || resizeDirection.includes("n")) {
-          setPosition({ x: newX, y: newY });
+          setDraftPosition({ x: newX, y: newY });
         }
       }
     };
@@ -121,6 +146,14 @@ export default function Window({
       setIsDragging(false);
       setIsResizing(false);
       setResizeDirection(null);
+
+      // Commit geometry to store for persistence
+      setWindowPosition(windowId, positionRef.current);
+      setWindowSize(windowId, sizeRef.current);
+
+      // Clear draft geometry; next render will use store values.
+      setDraftPosition(null);
+      setDraftSize(null);
     };
 
     if (isDragging || isResizing) {
@@ -140,6 +173,10 @@ export default function Window({
     resizeStartPos,
     resizeStartSize,
     position,
+    size,
+    setWindowPosition,
+    setWindowSize,
+    windowId,
   ]);
 
   const handleTitleBarMouseDown = (e: React.MouseEvent) => {
@@ -156,7 +193,7 @@ export default function Window({
       y: e.clientY - position.y,
     });
 
-    onFocus();
+    focusWindow(windowId);
   };
 
   const handleResizeMouseDown = (e: React.MouseEvent, direction: string) => {
@@ -174,14 +211,22 @@ export default function Window({
       height: size.height,
     });
 
-    onFocus();
+    focusWindow(windowId);
   };
 
   const toggleMaximize = () => {
     if (isMaximized) {
       // Restore previous state
-      setPosition(preMaximizeState.position);
-      setSize(preMaximizeState.size);
+      positionRef.current = preMaximizeState.position;
+      sizeRef.current = preMaximizeState.size;
+      setDraftPosition(preMaximizeState.position);
+      setDraftSize(preMaximizeState.size);
+      setWindowPosition(windowId, preMaximizeState.position);
+      setWindowSize(windowId, preMaximizeState.size);
+
+      // Clear draft after commit
+      setDraftPosition(null);
+      setDraftSize(null);
     } else {
       // Save current state before maximizing
       setPreMaximizeState({ position, size });
@@ -190,11 +235,22 @@ export default function Window({
       const availableHeight = window.innerHeight - 26; // 6px for menubar + 20px padding
 
       // Maximize
-      setPosition({ x: 0, y: 26 }); // Position below menubar
-      setSize({
+      const nextPosition = { x: 0, y: 26 };
+      const nextSize = {
         width: window.innerWidth,
         height: availableHeight - 70, // Account for dock
-      });
+      };
+
+      positionRef.current = nextPosition;
+      sizeRef.current = nextSize;
+      setDraftPosition(nextPosition);
+      setDraftSize(nextSize);
+      setWindowPosition(windowId, nextPosition);
+      setWindowSize(windowId, nextSize);
+
+      // Clear draft after commit
+      setDraftPosition(null);
+      setDraftSize(null);
     }
 
     setIsMaximized(!isMaximized);
@@ -202,7 +258,7 @@ export default function Window({
 
   // Make minimize do the same as close
   const handleMinimize = () => {
-    onClose();
+    closeWindow(windowId);
   };
 
   const titleBarClass = isDarkMode
@@ -226,7 +282,7 @@ export default function Window({
         width: `${size.width}px`,
         height: `${size.height}px`,
       }}
-      onMouseDown={onFocus}
+      onMouseDown={() => focusWindow(windowId)}
     >
       {/* Title bar */}
       <div
@@ -236,7 +292,7 @@ export default function Window({
         <div className="window-controls flex items-center space-x-2 mr-4">
           <button
             className="w-3 h-3 rounded-full bg-red-500 hover:bg-red-600 flex items-center justify-center"
-            onClick={onClose}
+            onClick={() => closeWindow(windowId)}
           >
             <X className="w-2 h-2 text-red-800 opacity-0 hover:opacity-100" />
           </button>
