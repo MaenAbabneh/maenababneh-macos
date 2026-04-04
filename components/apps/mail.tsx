@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { Mail } from "lucide-react";
-import { MAIL_TO_URL } from "@/constant/media-links";
+import { MAIL_TO_URL } from "@/constants/media-links";
 
 interface MailProps {
   isDarkMode?: boolean;

@@ -25,7 +25,7 @@ import {
   SIDEBAR_WIDTH,
   SIDEBAR_WIDTH_ICON,
   SIDEBAR_WIDTH_MOBILE,
-} from "@/constant/sidebar-config";
+} from "@/constants/sidebar-config";
 
 type SidebarContext = {
   state: "expanded" | "collapsed";

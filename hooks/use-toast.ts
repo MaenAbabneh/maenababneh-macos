@@ -8,7 +8,7 @@ import {
   TOAST_ACTION_TYPES,
   TOAST_LIMIT,
   TOAST_REMOVE_DELAY,
-} from "@/constant/toast-config";
+} from "@/constants/toast-config";
 
 type ToasterToast = ToastProps & {
   id: string;

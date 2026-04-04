@@ -16,7 +16,7 @@ import YouTube from "@/components/apps/youtube";
 import Spotify from "@/components/apps/spotify";
 import Snake from "@/components/apps/snake";
 import Weather from "@/components/apps/weather";
-import { WINDOW_MIN_SIZE } from "@/constant/window-config";
+import { WINDOW_MIN_SIZE } from "@/constants/window-config";
 
 const componentMap: Record<
   string,

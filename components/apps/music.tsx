@@ -11,8 +11,8 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import { Slider } from "@/components/ui/slider";
-import { MUSIC_PLAYLIST } from "@/constant/music-data";
-import { MUSIC_CONFIG } from "@/constant/ui-config";
+import { MUSIC_PLAYLIST } from "@/constants/music-data";
+import { MUSIC_CONFIG } from "@/constants/ui-config";
 
 export default function Music() {
   const [isPlaying, setIsPlaying] = useState(false);

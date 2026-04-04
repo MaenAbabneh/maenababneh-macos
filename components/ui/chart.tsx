@@ -4,7 +4,7 @@ import * as React from "react";
 import * as RechartsPrimitive from "recharts";
 
 import { cn } from "@/lib/utils";
-import { CHART_THEMES } from "@/constant/chart-config";
+import { CHART_THEMES } from "@/constants/chart-config";
 
 // Format: { THEME_NAME: CSS_SELECTOR }
 const THEMES = CHART_THEMES;

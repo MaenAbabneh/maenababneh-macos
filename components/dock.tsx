@@ -6,12 +6,12 @@ import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import { MoreHorizontal } from "lucide-react";
 import type { AppWindow } from "@/types";
-import { DOCK_APPS, type AppRegistryItem } from "@/constant/apps-registry";
-import { UI_MOBILE_BREAKPOINT } from "@/constant/ui-config";
+import { DOCK_APPS, type AppRegistryItem } from "@/constants/apps-registry";
+import { UI_MOBILE_BREAKPOINT } from "@/constants/ui-config";
 import {
   APP_WINDOW_DEFAULT_SIZE,
   APP_WINDOW_POSITION_RANGE,
-} from "@/constant/window-config";
+} from "@/constants/window-config";
 
 const hashString = (input: string) => {
   let hash = 0;

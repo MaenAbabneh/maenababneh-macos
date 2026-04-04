@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import Image from "next/image";
-import { YOUTUBE_CHANNEL_URL } from "@/constant/media-links";
+import { YOUTUBE_CHANNEL_URL } from "@/constants/media-links";
 
 interface YouTubeProps {
   isDarkMode?: boolean;

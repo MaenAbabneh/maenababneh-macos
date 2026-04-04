@@ -13,7 +13,7 @@ import {
   Mouse,
   Globe,
 } from "lucide-react";
-import { SETTINGS_SECTIONS } from "@/constant/settings-sections";
+import { SETTINGS_SECTIONS } from "@/constants/settings-sections";
 
 export default function Settings() {
   const [activeSection, setActiveSection] = useState("general");

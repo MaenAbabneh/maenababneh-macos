@@ -3,12 +3,12 @@
 import { useState, useMemo } from "react";
 import Image from "next/image";
 import type { AppWindow } from "@/types";
-import { LAUNCHPAD_APPS, type AppRegistryItem } from "@/constant/apps-registry";
+import { LAUNCHPAD_APPS, type AppRegistryItem } from "@/constants/apps-registry";
 import {
   ANIMATION_DELAYS_MS,
   APP_WINDOW_DEFAULT_SIZE,
   APP_WINDOW_POSITION_RANGE,
-} from "@/constant/window-config";
+} from "@/constants/window-config";
 
 const hashString = (input: string) => {
   let hash = 0;

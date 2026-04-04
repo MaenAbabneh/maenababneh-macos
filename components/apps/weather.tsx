@@ -19,7 +19,7 @@ import {
   DEFAULT_WEATHER_CITY,
   WEATHER_DATA,
   type WeatherCondition,
-} from "@/constant/weather-data";
+} from "@/constants/weather-data";
 
 interface WeatherProps {
   isDarkMode?: boolean;

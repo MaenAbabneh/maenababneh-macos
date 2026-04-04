@@ -6,8 +6,8 @@ import LoginScreen from "@/components/login-screen";
 import Desktop from "@/components/desktop";
 import SleepScreen from "@/components/sleep-screen";
 import ShutdownScreen from "@/components/shutdown-screen";
-import { STORAGE_KEYS } from "@/constant/storage-keys";
-import { ANIMATION_DELAYS_MS } from "@/constant/window-config";
+import { STORAGE_KEYS } from "@/constants/storage-keys";
+import { ANIMATION_DELAYS_MS } from "@/constants/window-config";
 
 type SystemState =
   | "booting"

@@ -15,9 +15,9 @@ import {
 import {
   SAFARI_FREQUENTLY_VISITED,
   SAFARI_SOCIAL_LINKS,
-} from "@/constant/media-links";
-import { STORAGE_KEYS } from "@/constant/storage-keys";
-import { ANIMATION_DELAYS_MS } from "@/constant/window-config";
+} from "@/constants/media-links";
+import { STORAGE_KEYS } from "@/constants/storage-keys";
+import { ANIMATION_DELAYS_MS } from "@/constants/window-config";
 
 interface SafariProps {
   isDarkMode?: boolean;

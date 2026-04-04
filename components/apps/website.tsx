@@ -1,6 +1,6 @@
 import Image from "next/image";
 import { Globe, ExternalLink } from "lucide-react";
-import { PERSONAL_WEBSITES } from "@/constant/media-links";
+import { PERSONAL_WEBSITES } from "@/constants/media-links";
 
 export default function Website() {
   return (

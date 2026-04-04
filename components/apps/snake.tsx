@@ -11,8 +11,8 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { INITIAL_SNAKE, SNAKE_CONFIG } from "@/constant/game-config";
-import { STORAGE_KEYS } from "@/constant/storage-keys";
+import { INITIAL_SNAKE, SNAKE_CONFIG } from "@/constants/game-config";
+import { STORAGE_KEYS } from "@/constants/storage-keys";
 
 interface SnakeProps {
   isDarkMode?: boolean;

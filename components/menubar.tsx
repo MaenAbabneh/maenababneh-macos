@@ -6,7 +6,7 @@ import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import { Search } from "lucide-react";
 import { AppleIcon } from "@/components/icons";
-import { STORAGE_KEYS } from "@/constant/storage-keys";
+import { STORAGE_KEYS } from "@/constants/storage-keys";
 
 type BatteryManager = {
   level: number;

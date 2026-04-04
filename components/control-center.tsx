@@ -10,8 +10,8 @@ import {
   VolumeX,
   Maximize,
 } from "lucide-react";
-import { STORAGE_KEYS } from "@/constant/storage-keys";
-import { CONTROL_CENTER_CONFIG } from "@/constant/ui-config";
+import { STORAGE_KEYS } from "@/constants/storage-keys";
+import { CONTROL_CENTER_CONFIG } from "@/constants/ui-config";
 
 interface ControlCenterProps {
   isDarkMode: boolean;
