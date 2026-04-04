@@ -2,11 +2,14 @@
 
 import type React from "react";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import Image from "next/image";
 import { Search } from "lucide-react";
 import { AppleIcon } from "@/components/icons";
-import { STORAGE_KEYS } from "@/constants/storage-keys";
+import { useDesktopStore } from "@/store/useDesktopStore";
+import { useSettingsStore } from "@/store/useSettingsStore";
+import { useSystemStore } from "@/store/useSystemStore";
+import { useIsDarkMode } from "@/hooks/use-is-dark-mode";
 
 type BatteryManager = {
   level: number;
@@ -27,37 +30,34 @@ type NavigatorWithBattery = Navigator & {
 
 interface MenubarProps {
   time: Date;
-  onLogout: () => void;
-  onSleep: () => void;
-  onShutdown: () => void;
-  onRestart: () => void;
-  onSpotlightClick: () => void;
-  onControlCenterClick: () => void;
-  isDarkMode: boolean;
-  activeWindow: { id: string; title: string } | null;
 }
 
-export default function Menubar({
-  time,
-  onLogout,
-  onSleep,
-  onShutdown,
-  onRestart,
-  onSpotlightClick,
-  onControlCenterClick,
-  isDarkMode,
-  activeWindow,
-}: MenubarProps) {
+export default function Menubar({ time }: MenubarProps) {
+  const { isDarkMode } = useIsDarkMode();
+
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
   const [batteryLevel, setBatteryLevel] = useState(100);
   const [isCharging, setIsCharging] = useState(false);
   const [showWifiToggle, setShowWifiToggle] = useState(false);
-  const [wifiEnabled, setWifiEnabled] = useState(() => {
-    if (typeof window === "undefined") return true;
-    const savedWifi = window.localStorage.getItem(STORAGE_KEYS.wifiEnabled);
-    if (savedWifi === null) return true;
-    return savedWifi === "true";
-  });
+
+  const wifiEnabled = useSettingsStore((s) => s.wifiEnabled);
+  const toggleWifi = useSettingsStore((s) => s.toggleWifi);
+
+  const toggleSpotlight = useDesktopStore((s) => s.toggleSpotlight);
+  const toggleControlCenter = useDesktopStore((s) => s.toggleControlCenter);
+  const activeWindowId = useDesktopStore((s) => s.activeWindowId);
+  const openWindows = useDesktopStore((s) => s.openWindows);
+
+  const sleep = useSystemStore((s) => s.sleep);
+  const restart = useSystemStore((s) => s.restart);
+  const shutdown = useSystemStore((s) => s.shutdown);
+  const logout = useSystemStore((s) => s.logout);
+
+  const activeWindow = useMemo(() => {
+    if (!activeWindowId) return null;
+    const found = openWindows.find((w) => w.id === activeWindowId);
+    return found ? { id: found.id, title: found.title } : null;
+  }, [activeWindowId, openWindows]);
   const menuRef = useRef<HTMLDivElement>(null);
   const wifiRef = useRef<HTMLDivElement>(null);
 
@@ -137,12 +137,6 @@ export default function Menubar({
     }
   };
 
-  const toggleWifi = () => {
-    const newState = !wifiEnabled;
-    setWifiEnabled(newState);
-    localStorage.setItem(STORAGE_KEYS.wifiEnabled, newState.toString());
-  };
-
   const toggleWifiPopup = (e: React.MouseEvent) => {
     e.stopPropagation();
     setShowWifiToggle(!showWifiToggle);
@@ -187,26 +181,26 @@ export default function Menubar({
             <div className="border-t border-gray-700 my-1"></div>
             <button
               className={`w-full text-left px-4 py-1 ${hoverClass}`}
-              onClick={onSleep}
+              onClick={sleep}
             >
               Sleep
             </button>
             <button
               className={`w-full text-left px-4 py-1 ${hoverClass}`}
-              onClick={onRestart}
+              onClick={restart}
             >
               Restart...
             </button>
             <button
               className={`w-full text-left px-4 py-1 ${hoverClass}`}
-              onClick={onShutdown}
+              onClick={shutdown}
             >
               Shut Down...
             </button>
             <div className="border-t border-gray-700 my-1"></div>
             <button
               className={`w-full text-left px-4 py-1 ${hoverClass}`}
-              onClick={onLogout}
+              onClick={logout}
             >
               Log Out Daniel...
             </button>
@@ -294,12 +288,12 @@ export default function Menubar({
           )}
         </div>
 
-        <button onClick={onSpotlightClick}>
+        <button onClick={toggleSpotlight}>
           <Search className="w-4 h-4" />
         </button>
 
         <button
-          onClick={onControlCenterClick}
+          onClick={toggleControlCenter}
           className="flex items-center justify-center"
         >
           <Image
