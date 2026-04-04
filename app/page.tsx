@@ -1,39 +1,19 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import BootScreen from "@/components/boot-screen";
 import LoginScreen from "@/components/login-screen";
 import Desktop from "@/components/desktop";
 import SleepScreen from "@/components/sleep-screen";
 import ShutdownScreen from "@/components/shutdown-screen";
-import { STORAGE_KEYS } from "@/constants/storage-keys";
 import { ANIMATION_DELAYS_MS } from "@/constants/window-config";
-
-type SystemState =
-  | "booting"
-  | "login"
-  | "desktop"
-  | "sleeping"
-  | "shutdown"
-  | "restarting";
+import { useSystemStore } from "@/store/useSystemStore";
+import { useSettingsStore } from "@/store/useSettingsStore";
 
 export default function Home() {
-  const [systemState, setSystemState] = useState<SystemState>("booting");
-  const [isDarkMode, setIsDarkMode] = useState(() => {
-    if (typeof window === "undefined") return false;
-    const savedDarkMode = window.localStorage.getItem(STORAGE_KEYS.isDarkMode);
-    if (savedDarkMode === null) return false;
-    return savedDarkMode === "true";
-  });
-  const [screenBrightness, setScreenBrightness] = useState(() => {
-    if (typeof window === "undefined") return 90;
-    const savedBrightness = window.localStorage.getItem(
-      STORAGE_KEYS.screenBrightness,
-    );
-    if (savedBrightness === null) return 90;
-    const parsed = Number.parseInt(savedBrightness, 10);
-    return Number.isFinite(parsed) ? parsed : 90;
-  });
+  const systemState = useSystemStore((s) => s.systemState);
+  const setSystemState = useSystemStore((s) => s.setSystemState);
+  const screenBrightness = useSettingsStore((s) => s.screenBrightness);
 
   // Simulate boot sequence
   useEffect(() => {
@@ -53,46 +33,7 @@ export default function Home() {
 
       return () => clearTimeout(bootTimer);
     }
-  }, [systemState]);
-
-  const handleLogin = () => {
-    setSystemState("desktop");
-  };
-
-  const handleLogout = () => {
-    setSystemState("login");
-  };
-
-  const handleSleep = () => {
-    setSystemState("sleeping");
-  };
-
-  const handleWakeUp = () => {
-    setSystemState("login");
-  };
-
-  const handleShutdown = () => {
-    setSystemState("shutdown");
-  };
-
-  const handleBoot = () => {
-    setSystemState("booting");
-  };
-
-  const handleRestart = () => {
-    setSystemState("restarting");
-  };
-
-  const toggleDarkMode = () => {
-    const newMode = !isDarkMode;
-    setIsDarkMode(newMode);
-    localStorage.setItem(STORAGE_KEYS.isDarkMode, newMode.toString());
-  };
-
-  const updateBrightness = (value: number) => {
-    setScreenBrightness(value);
-    localStorage.setItem(STORAGE_KEYS.screenBrightness, value.toString());
-  };
+  }, [systemState, setSystemState]);
 
   // Render the appropriate screen based on system state
   const renderScreen = () => {
@@ -102,33 +43,16 @@ export default function Home() {
         return <BootScreen />;
 
       case "login":
-        return (
-          <LoginScreen
-            onLogin={handleLogin}
-            isDarkMode={isDarkMode}
-            onToggleDarkMode={toggleDarkMode}
-          />
-        );
+        return <LoginScreen />;
 
       case "desktop":
-        return (
-          <Desktop
-            onLogout={handleLogout}
-            onSleep={handleSleep}
-            onShutdown={handleShutdown}
-            onRestart={handleRestart}
-            initialDarkMode={isDarkMode}
-            onToggleDarkMode={toggleDarkMode}
-            initialBrightness={screenBrightness}
-            onBrightnessChange={updateBrightness}
-          />
-        );
+        return <Desktop />;
 
       case "shutdown":
-        return <ShutdownScreen onBoot={handleBoot} />;
+        return <ShutdownScreen />;
 
       case "sleeping":
-        return <SleepScreen onWakeUp={handleWakeUp} />;
+        return <SleepScreen />;
 
       default:
         return <BootScreen />;
