@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import {
   Play,
   Pause,
@@ -12,26 +12,42 @@ import {
 import Image from "next/image";
 import { Slider } from "@/components/ui/slider";
 import { MUSIC_PLAYLIST } from "@/constants/music-data";
-import { MUSIC_CONFIG } from "@/constants/ui-config";
+import { useMediaStore } from "@/store/useMediaStore";
 
 export default function Music() {
-  const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
-  const [volume, setVolume] = useState<number>(MUSIC_CONFIG.defaultVolume);
-  const [isMuted, setIsMuted] = useState(false);
-  const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
+  const isPlaying = useMediaStore((s) => s.musicIsPlaying);
+  const setIsPlaying = useMediaStore((s) => s.setMusicIsPlaying);
+  const currentTrackIndex = useMediaStore((s) => s.musicTrackIndex);
+  const setCurrentTrackIndex = useMediaStore((s) => s.setMusicTrackIndex);
+  const volume = useMediaStore((s) => s.musicVolume);
+  const setVolume = useMediaStore((s) => s.setMusicVolume);
+  const isMuted = useMediaStore((s) => s.musicIsMuted);
+  const setIsMuted = useMediaStore((s) => s.setMusicIsMuted);
+  const toggleMute = useMediaStore((s) => s.toggleMusicMute);
 
   const audioRef = useRef<HTMLAudioElement>(null);
 
-  const currentTrack = MUSIC_PLAYLIST[currentTrackIndex];
+  const safeTrackIndex = Math.min(
+    Math.max(0, currentTrackIndex),
+    Math.max(0, MUSIC_PLAYLIST.length - 1),
+  );
 
-  const handleNext = () => {
-    setCurrentTrackIndex((prev) =>
-      prev === MUSIC_PLAYLIST.length - 1 ? 0 : prev + 1,
-    );
+  useEffect(() => {
+    if (safeTrackIndex !== currentTrackIndex) {
+      setCurrentTrackIndex(safeTrackIndex);
+    }
+  }, [currentTrackIndex, safeTrackIndex, setCurrentTrackIndex]);
+
+  const currentTrack = MUSIC_PLAYLIST[safeTrackIndex];
+
+  const handleNext = useCallback(() => {
+    const nextIndex =
+      safeTrackIndex === MUSIC_PLAYLIST.length - 1 ? 0 : safeTrackIndex + 1;
+    setCurrentTrackIndex(nextIndex);
     setIsPlaying(true);
-  };
+  }, [safeTrackIndex, setCurrentTrackIndex, setIsPlaying]);
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -49,7 +65,7 @@ export default function Music() {
       audio.removeEventListener("loadedmetadata", updateDuration);
       audio.removeEventListener("ended", handleNext);
     };
-  }, [currentTrackIndex]);
+  }, [handleNext, safeTrackIndex]);
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -63,7 +79,7 @@ export default function Music() {
     } else {
       audio.pause();
     }
-  }, [isPlaying, currentTrackIndex]);
+  }, [isPlaying, safeTrackIndex, setIsPlaying]);
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -77,9 +93,9 @@ export default function Music() {
   };
 
   const handlePrevious = () => {
-    setCurrentTrackIndex((prev) =>
-      prev === 0 ? MUSIC_PLAYLIST.length - 1 : prev - 1,
-    );
+    const prevIndex =
+      safeTrackIndex === 0 ? MUSIC_PLAYLIST.length - 1 : safeTrackIndex - 1;
+    setCurrentTrackIndex(prevIndex);
     setIsPlaying(true);
   };
 
@@ -94,10 +110,6 @@ export default function Music() {
   const handleVolumeChange = (value: number[]) => {
     setVolume(value[0]);
     setIsMuted(value[0] === 0);
-  };
-
-  const toggleMute = () => {
-    setIsMuted(!isMuted);
   };
 
   const formatTime = (time: number) => {
