@@ -6,4 +6,5 @@ export const STORAGE_KEYS = {
   desktopState: "desktopState",
   settingsState: "settingsState",
   notesState: "notesState",
+  mediaState: "mediaState",
 } as const;
