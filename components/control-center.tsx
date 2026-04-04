@@ -10,32 +10,23 @@ import {
   VolumeX,
   Maximize,
 } from "lucide-react";
-import { STORAGE_KEYS } from "@/constants/storage-keys";
 import { CONTROL_CENTER_CONFIG } from "@/constants/ui-config";
+import { useSettingsStore } from "@/store/useSettingsStore";
+import { useIsDarkMode } from "@/hooks/use-is-dark-mode";
+import { useTheme } from "next-themes";
+export default function ControlCenter() {
+  const { isDarkMode } = useIsDarkMode();
+  const { setTheme } = useTheme();
 
-interface ControlCenterProps {
-  isDarkMode: boolean;
-  onToggleDarkMode: () => void;
-  brightness: number;
-  onBrightnessChange: (value: number) => void;
-}
+  const wifiEnabled = useSettingsStore((s) => s.wifiEnabled);
+  const toggleWifi = useSettingsStore((s) => s.toggleWifi);
+  const bluetoothEnabled = useSettingsStore((s) => s.bluetoothEnabled);
+  const toggleBluetooth = useSettingsStore((s) => s.toggleBluetooth);
+  const brightness = useSettingsStore((s) => s.screenBrightness);
+  const setBrightness = useSettingsStore((s) => s.setBrightness);
+  const volume = useSettingsStore((s) => s.volume);
+  const setVolume = useSettingsStore((s) => s.setVolume);
 
-export default function ControlCenter({
-  isDarkMode,
-  onToggleDarkMode,
-  brightness,
-  onBrightnessChange,
-}: ControlCenterProps) {
-  const [wifiEnabled, setWifiEnabled] = useState(() => {
-    if (typeof window === "undefined") return true;
-    const savedWifi = window.localStorage.getItem(STORAGE_KEYS.wifiEnabled);
-    if (savedWifi === null) return true;
-    return savedWifi === "true";
-  });
-  const [bluetoothEnabled, setBluetoothEnabled] = useState(true);
-  const [volume, setVolume] = useState<number>(
-    CONTROL_CENTER_CONFIG.defaultVolume,
-  );
   const [isFullscreen, setIsFullscreen] = useState(() => {
     if (typeof document === "undefined") return false;
     return !!document.fullscreenElement;
@@ -54,13 +45,6 @@ export default function ControlCenter({
       document.removeEventListener("fullscreenchange", handleFullscreenChange);
     };
   }, []);
-
-  // Update the Control Center to store WiFi state in localStorage
-  const toggleWifi = () => {
-    const newState = !wifiEnabled;
-    setWifiEnabled(newState);
-    localStorage.setItem(STORAGE_KEYS.wifiEnabled, newState.toString());
-  };
 
   // Toggle fullscreen mode
   const toggleFullscreen = () => {
@@ -96,7 +80,7 @@ export default function ControlCenter({
             className={`flex flex-col items-center justify-center p-3 rounded-xl ${
               bluetoothEnabled ? "bg-blue-500" : "bg-gray-700"
             }`}
-            onClick={() => setBluetoothEnabled(!bluetoothEnabled)}
+            onClick={toggleBluetooth}
           >
             <Bluetooth className="w-6 h-6 text-white mb-1" />
             <span className="text-white text-xs">Bluetooth</span>
@@ -106,7 +90,7 @@ export default function ControlCenter({
             className={`flex flex-col items-center justify-center p-3 rounded-xl ${
               isDarkMode ? "bg-blue-500" : "bg-gray-700"
             }`}
-            onClick={onToggleDarkMode}
+            onClick={() => setTheme(isDarkMode ? "light" : "dark")}
           >
             {isDarkMode ? (
               <Moon className="w-6 h-6 text-white mb-1" />
@@ -141,7 +125,7 @@ export default function ControlCenter({
             min={CONTROL_CENTER_CONFIG.brightnessMin}
             max={CONTROL_CENTER_CONFIG.brightnessMax}
             value={brightness}
-            onChange={(e) => onBrightnessChange(Number(e.target.value))}
+            onChange={(e) => setBrightness(Number(e.target.value))}
             className="w-full h-1 bg-gray-600 rounded-full appearance-none cursor-pointer"
           />
         </div>
