@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Image from "next/image";
 import {
   ArrowLeft,
@@ -16,8 +16,8 @@ import {
   SAFARI_FREQUENTLY_VISITED,
   SAFARI_SOCIAL_LINKS,
 } from "@/constants/media-links";
-import { STORAGE_KEYS } from "@/constants/storage-keys";
 import { ANIMATION_DELAYS_MS } from "@/constants/window-config";
+import { useSettingsStore } from "@/store/useSettingsStore";
 
 interface SafariProps {
   isDarkMode?: boolean;
@@ -27,22 +27,7 @@ export default function Safari({ isDarkMode = true }: SafariProps) {
   const [url, setUrl] = useState("https://danielprior.dev");
   const [isLoading, setIsLoading] = useState(false);
   const activeTab = "home";
-  const [wifiEnabled, setWifiEnabled] = useState(true);
-
-  // Get WiFi status from localStorage or default to true
-  useEffect(() => {
-    const checkWifiStatus = () => {
-      const status = localStorage.getItem(STORAGE_KEYS.wifiEnabled);
-      setWifiEnabled(status === null ? true : status === "true");
-    };
-
-    checkWifiStatus();
-
-    // Check every second in case it changes
-    const interval = setInterval(checkWifiStatus, 1000);
-
-    return () => clearInterval(interval);
-  }, []);
+  const wifiEnabled = useSettingsStore((s) => s.wifiEnabled);
 
   const textColor = isDarkMode ? "text-white" : "text-gray-800";
   const bgColor = isDarkMode ? "bg-gray-900" : "bg-white";
