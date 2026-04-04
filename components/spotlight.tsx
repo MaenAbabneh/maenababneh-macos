@@ -2,12 +2,15 @@
 
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import Image from "next/image";
-import type { AppWindow } from "@/types";
-import { SPOTLIGHT_APPS, type AppRegistryItem } from "@/constants/apps-registry";
+import {
+  SPOTLIGHT_APPS,
+  type AppRegistryItem,
+} from "@/constants/apps-registry";
 import {
   APP_WINDOW_DEFAULT_SIZE,
   APP_WINDOW_POSITION_RANGE,
 } from "@/constants/window-config";
+import { useDesktopStore } from "@/store/useDesktopStore";
 
 const hashString = (input: string) => {
   let hash = 0;
@@ -32,12 +35,10 @@ const getWindowPosition = (seed: string) => {
   };
 };
 
-interface SpotlightProps {
-  onClose: () => void;
-  onAppClick: (app: AppWindow) => void;
-}
+export default function Spotlight() {
+  const openApp = useDesktopStore((s) => s.openApp);
+  const setSpotlightOpen = useDesktopStore((s) => s.setSpotlightOpen);
 
-export default function Spotlight({ onClose, onAppClick }: SpotlightProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedIndex, setSelectedIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -53,7 +54,7 @@ export default function Spotlight({ onClose, onAppClick }: SpotlightProps) {
     (app: AppRegistryItem) => {
       const position = getWindowPosition(app.id);
 
-      onAppClick({
+      openApp({
         id: app.id,
         title: app.title,
         component: app.component,
@@ -63,9 +64,9 @@ export default function Spotlight({ onClose, onAppClick }: SpotlightProps) {
           height: APP_WINDOW_DEFAULT_SIZE.height,
         },
       });
-      onClose();
+      setSpotlightOpen(false);
     },
-    [onAppClick, onClose],
+    [openApp, setSpotlightOpen],
   );
 
   useEffect(() => {
@@ -75,7 +76,7 @@ export default function Spotlight({ onClose, onAppClick }: SpotlightProps) {
     // Handle escape key to close
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
-        onClose();
+        setSpotlightOpen(false);
       } else if (e.key === "ArrowDown") {
         setSelectedIndex((prev) =>
           prev < filteredApps.length - 1 ? prev + 1 : prev,
@@ -92,12 +93,12 @@ export default function Spotlight({ onClose, onAppClick }: SpotlightProps) {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [filteredApps, selectedIndex, handleAppClick, onClose]);
+  }, [filteredApps, selectedIndex, handleAppClick, setSpotlightOpen]);
 
   return (
     <div
       className="fixed inset-0 bg-transparent z-40 flex items-center justify-center"
-      onMouseDown={onClose}
+      onMouseDown={() => setSpotlightOpen(false)}
     >
       <div
         className="w-full max-w-2xl bg-gray-800/80 backdrop-blur-xl rounded-xl overflow-hidden shadow-2xl"
