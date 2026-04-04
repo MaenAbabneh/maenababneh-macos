@@ -2,12 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { AppleIcon } from "@/components/icons";
+import { useSystemStore } from "@/store/useSystemStore";
 
-interface ShutdownScreenProps {
-  onBoot: () => void;
-}
-
-export default function ShutdownScreen({ onBoot }: ShutdownScreenProps) {
+export default function ShutdownScreen() {
+  const boot = useSystemStore((s) => s.boot);
   const [showBootText, setShowBootText] = useState(false);
 
   useEffect(() => {
@@ -22,7 +20,7 @@ export default function ShutdownScreen({ onBoot }: ShutdownScreenProps) {
   return (
     <div
       className="h-screen w-screen bg-black flex flex-col items-center justify-center cursor-pointer"
-      onMouseDown={onBoot}
+      onMouseDown={boot}
     >
       {showBootText ? (
         <div className="flex flex-col items-center">
