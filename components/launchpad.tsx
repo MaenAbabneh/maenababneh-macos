@@ -2,13 +2,16 @@
 
 import { useState, useMemo } from "react";
 import Image from "next/image";
-import type { AppWindow } from "@/types";
-import { LAUNCHPAD_APPS, type AppRegistryItem } from "@/constants/apps-registry";
+import {
+  LAUNCHPAD_APPS,
+  type AppRegistryItem,
+} from "@/constants/apps-registry";
 import {
   ANIMATION_DELAYS_MS,
   APP_WINDOW_DEFAULT_SIZE,
   APP_WINDOW_POSITION_RANGE,
 } from "@/constants/window-config";
+import { useDesktopStore } from "@/store/useDesktopStore";
 
 const hashString = (input: string) => {
   let hash = 0;
@@ -33,13 +36,11 @@ const getWindowPosition = (seed: string) => {
   };
 };
 
-interface LaunchpadProps {
-  onAppClick: (app: AppWindow) => void;
-  onClose: () => void;
-}
-
 // Improve Launchpad appearance
-export default function Launchpad({ onAppClick, onClose }: LaunchpadProps) {
+export default function Launchpad() {
+  const openApp = useDesktopStore((s) => s.openApp);
+  const setLaunchpadOpen = useDesktopStore((s) => s.setLaunchpadOpen);
+
   const [searchTerm, setSearchTerm] = useState("");
   const [isVisible, setIsVisible] = useState(true);
 
@@ -53,7 +54,7 @@ export default function Launchpad({ onAppClick, onClose }: LaunchpadProps) {
   const handleAppClick = (app: AppRegistryItem) => {
     const position = getWindowPosition(app.id);
 
-    onAppClick({
+    openApp({
       id: app.id,
       title: app.title,
       component: app.component,
@@ -63,12 +64,15 @@ export default function Launchpad({ onAppClick, onClose }: LaunchpadProps) {
         height: APP_WINDOW_DEFAULT_SIZE.height,
       },
     });
-    onClose();
+    setLaunchpadOpen(false);
   };
 
   const handleClose = () => {
     setIsVisible(false);
-    setTimeout(onClose, ANIMATION_DELAYS_MS.launchpadClose);
+    setTimeout(
+      () => setLaunchpadOpen(false),
+      ANIMATION_DELAYS_MS.launchpadClose,
+    );
   };
 
   return (
