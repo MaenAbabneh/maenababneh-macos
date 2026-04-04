@@ -2,117 +2,24 @@
 
 import type React from "react";
 
-import { useState } from "react";
+import { useNotesStore } from "@/store/useNotesStore";
 
 interface NotesProps {
   isDarkMode?: boolean;
 }
 
 export default function Notes({ isDarkMode = true }: NotesProps) {
-  // Update the notes state with enhanced content
-  const [notes, setNotes] = useState([
-    {
-      id: 1,
-      title: "About Me",
-      content: `# Daniel Prior
-Frontend Developer & Full Stack Engineer
-
-## Skills
-### Frontend
-- React/Next.js
-- Vue.js/Nuxt.js
-- TypeScript/JavaScript
-- Tailwind CSS/SCSS
-- UI/UX Design
-- Responsive Web Development
-- Vite/Webpack
-- Wordpress, Umbraco etc.
-
-### Backend
-- Node.js/Express
-- PHP/Laravel/Slim
-- Python/Django
-- Rust & GO (learning)
-- SQL (MySQL, PostgreSQL)
-- NoSQL (MongoDB)
-- RESTful APIs/GraphQL
-
-### Game Development
-- Unity/Unreal Engine
-- C# & C++
-- Game Design Principles
-- Game Mechanics & Systems
-- Blender 3D/3D Modeling
-- Animations for agricultural machinery and vehicles
-- Godot Engine
-
-### DevOps & Tools
-- Docker/Containerization
-- CI/CD Pipelines
-- Git/GitHub
-- Agile/Scrum Methodologies
-- AWS/Cloud Services
-- Linux/Unix
-
-## Experience
-Currently working as a Senior Full Stack Developer, focusing on building accessible, performant, and scalable web applications. Experienced in leading development teams and implementing best practices for modern web development.
-
-## Contact
-Email: mail@danielprior.dk
-GitHub: github.com/daprior
-Portfolio: danielprior.dev`,
-      date: "Today, 10:30 AM",
-    },
-    {
-      id: 2,
-      title: "Learning Goals",
-      content: `# Learning Goals
-
-## Career & Independence
-- Network with like-minded professionals and mentors
-- Build a personal brand and online presence
-- Work on meaningful AI projects with real-world impact
-- Enhance knowledge in industries I'm passionate about (fintech, finance, web3 and automotive)
-
-## Technical Skills
-- Master Rust for performance-critical applications and systems programming
-- Improve Go proficiency for backend services and microservices
-- Deepen knowledge of AI/ML frameworks and practical applications
-- Make popular games with Unity and Unreal Engine
-
-## Personal Projects
-- Develop an indie game from concept to release
-- Build AI-powered tools that enhance creative workflows
-- Create open-source libraries that solve real problems
-- Contribute to projects I use and admire
-
-## Learning Approach
-- Focus on deep understanding rather than surface-level knowledge
-- Build complete projects rather than just tutorials and unfinished projects
-- Share knowledge and experiences with the community
-- Maintain a balance between breadth and depth of skills`,
-      date: "Yesterday, 3:15 PM",
-    },
-  ]);
-
-  const [selectedNoteId, setSelectedNoteId] = useState(1);
+  const notes = useNotesStore((s) => s.notes);
+  const selectedNoteId = useNotesStore((s) => s.selectedNoteId);
+  const selectNote = useNotesStore((s) => s.selectNote);
+  const updateSelectedNoteContent = useNotesStore(
+    (s) => s.updateSelectedNoteContent,
+  );
 
   const selectedNote = notes.find((note) => note.id === selectedNoteId);
 
-  const handleNoteSelect = (id: number) => {
-    setSelectedNoteId(id);
-  };
-
   const handleContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    // Update the note content
-    setNotes(
-      notes.map((note) => {
-        if (note.id === selectedNoteId) {
-          return { ...note, content: e.target.value };
-        }
-        return note;
-      }),
-    );
+    updateSelectedNoteContent(e.target.value);
   };
 
   const textColor = isDarkMode ? "text-white" : "text-gray-800";
@@ -151,7 +58,7 @@ Portfolio: danielprior.dev`,
               key={note.id}
               type="button"
               className={`w-full text-left p-3 ${selectedNoteId === note.id ? selectedBg : hoverBg}`}
-              onClick={() => handleNoteSelect(note.id)}
+              onClick={() => selectNote(note.id)}
             >
               <h3 className="font-medium truncate">{note.title}</h3>
               <p className="text-xs text-gray-500 mt-1">{note.date}</p>
