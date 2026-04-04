@@ -2,12 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { AppleIcon } from "@/components/icons";
+import { useSystemStore } from "@/store/useSystemStore";
 
-interface SleepScreenProps {
-  onWakeUp: () => void;
-}
-
-export default function SleepScreen({ onWakeUp }: SleepScreenProps) {
+export default function SleepScreen() {
+  const wakeUp = useSystemStore((s) => s.wakeUp);
   const [showWakeText, setShowWakeText] = useState(false);
 
   useEffect(() => {
@@ -22,7 +20,7 @@ export default function SleepScreen({ onWakeUp }: SleepScreenProps) {
   return (
     <div
       className="h-screen w-screen bg-black flex flex-col items-center justify-center cursor-pointer"
-      onMouseDown={onWakeUp}
+      onMouseDown={wakeUp}
     >
       <AppleIcon className="w-20 h-20 text-white mb-8 opacity-30" />
 
