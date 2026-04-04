@@ -14,48 +14,42 @@ import {
   Shuffle,
   Repeat,
 } from "lucide-react";
+import { useIsDarkMode } from "@/hooks/use-is-dark-mode";
+import { useMediaStore } from "@/store/useMediaStore";
+import { SPOTIFY_PLAYLIST } from "@/constants/music-data";
 
-interface SpotifyProps {
-  isDarkMode?: boolean;
-}
+export default function Spotify() {
+  const { isDarkMode } = useIsDarkMode();
 
-const PLAYLIST = [
-  {
-    title: "Lofi Study Beat",
-    artist: "Chill Artist",
-    cover: "/cozy-corner-beats.png",
-    file: "/lofi-study-112191.mp3",
-    duration: "3:42",
-  },
-  {
-    title: "Acoustic Breeze",
-    artist: "Benjamin Tissot",
-    cover: "/cool-blue-jazz.png",
-    file: "/lofi-study-112191.mp3",
-    duration: "2:56",
-  },
-  {
-    title: "Sunny Morning",
-    artist: "Alex Productions",
-    cover: "/grand-piano-keys.png",
-    file: "/lofi-study-112191.mp3",
-    duration: "4:10",
-  },
-];
+  const isPlaying = useMediaStore((s) => s.spotifyIsPlaying);
+  const setIsPlaying = useMediaStore((s) => s.setSpotifyIsPlaying);
+  const currentTrackIndex = useMediaStore((s) => s.spotifyTrackIndex);
+  const setCurrentTrackIndex = useMediaStore((s) => s.setSpotifyTrackIndex);
+  const volume = useMediaStore((s) => s.spotifyVolume);
+  const setVolume = useMediaStore((s) => s.setSpotifyVolume);
+  const isMuted = useMediaStore((s) => s.spotifyIsMuted);
+  const setIsMuted = useMediaStore((s) => s.setSpotifyIsMuted);
+  const toggleMute = useMediaStore((s) => s.toggleSpotifyMute);
 
-export default function Spotify({ isDarkMode = true }: SpotifyProps) {
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
-  const [volume, setVolume] = useState(0.7);
-  const [isMuted, setIsMuted] = useState(false);
   const [isAudioReady, setIsAudioReady] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const audioRef = useRef<HTMLAudioElement>(null);
 
-  const currentTrack = PLAYLIST[currentTrackIndex];
+  const safeTrackIndex = Math.min(
+    Math.max(0, currentTrackIndex),
+    Math.max(0, SPOTIFY_PLAYLIST.length - 1),
+  );
+
+  useEffect(() => {
+    if (safeTrackIndex !== currentTrackIndex) {
+      setCurrentTrackIndex(safeTrackIndex);
+    }
+  }, [currentTrackIndex, safeTrackIndex, setCurrentTrackIndex]);
+
+  const currentTrack = SPOTIFY_PLAYLIST[safeTrackIndex];
 
   const bgColor = isDarkMode ? "bg-gray-900" : "bg-white";
   const textColor = isDarkMode ? "text-white" : "text-gray-800";
@@ -76,8 +70,8 @@ export default function Spotify({ isDarkMode = true }: SpotifyProps) {
 
     prepareForTrackChange();
     setIsPlaying(true);
-    setCurrentTrackIndex((prev) =>
-      prev === 0 ? PLAYLIST.length - 1 : prev - 1,
+    setCurrentTrackIndex(
+      safeTrackIndex === 0 ? SPOTIFY_PLAYLIST.length - 1 : safeTrackIndex - 1,
     );
   };
 
@@ -89,8 +83,8 @@ export default function Spotify({ isDarkMode = true }: SpotifyProps) {
 
     prepareForTrackChange();
     setIsPlaying(true);
-    setCurrentTrackIndex((prev) =>
-      prev === PLAYLIST.length - 1 ? 0 : prev + 1,
+    setCurrentTrackIndex(
+      safeTrackIndex === SPOTIFY_PLAYLIST.length - 1 ? 0 : safeTrackIndex + 1,
     );
   };
 
@@ -105,8 +99,8 @@ export default function Spotify({ isDarkMode = true }: SpotifyProps) {
     };
     const handleEnd = () => {
       prepareForTrackChange();
-      setCurrentTrackIndex((prev) =>
-        prev === PLAYLIST.length - 1 ? 0 : prev + 1,
+      setCurrentTrackIndex(
+        safeTrackIndex === SPOTIFY_PLAYLIST.length - 1 ? 0 : safeTrackIndex + 1,
       );
       setIsPlaying(true);
     };
@@ -133,7 +127,12 @@ export default function Spotify({ isDarkMode = true }: SpotifyProps) {
       audio.removeEventListener("ended", handleEnd);
       audio.removeEventListener("error", handleError as EventListener);
     };
-  }, [currentTrackIndex, prepareForTrackChange]);
+  }, [
+    prepareForTrackChange,
+    safeTrackIndex,
+    setCurrentTrackIndex,
+    setIsPlaying,
+  ]);
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -153,7 +152,7 @@ export default function Spotify({ isDarkMode = true }: SpotifyProps) {
     } else {
       audio.pause();
     }
-  }, [isPlaying, isAudioReady]);
+  }, [isPlaying, isAudioReady, setIsPlaying]);
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -189,10 +188,6 @@ export default function Spotify({ isDarkMode = true }: SpotifyProps) {
     setIsMuted(newVolume === 0);
   };
 
-  const toggleMute = () => {
-    setIsMuted(!isMuted);
-  };
-
   const formatTime = (time: number) => {
     const minutes = Math.floor(time / 60);
     const seconds = Math.floor(time % 60);
@@ -200,7 +195,7 @@ export default function Spotify({ isDarkMode = true }: SpotifyProps) {
   };
 
   const selectTrack = (index: number) => {
-    if (index === currentTrackIndex) {
+    if (index === safeTrackIndex) {
       togglePlay();
       return;
     }
@@ -344,12 +339,12 @@ export default function Spotify({ isDarkMode = true }: SpotifyProps) {
       <div className={`${secondaryBg} p-4`}>
         <h3 className="font-medium mb-2">Playlist</h3>
         <div className="space-y-2">
-          {PLAYLIST.map((track, index) => (
+          {SPOTIFY_PLAYLIST.map((track, index) => (
             <button
               key={index}
               type="button"
               className={`flex items-center p-2 rounded cursor-pointer ${
-                currentTrackIndex === index
+                safeTrackIndex === index
                   ? "bg-green-900/30"
                   : "hover:bg-gray-700/30"
               }`}
@@ -366,7 +361,7 @@ export default function Spotify({ isDarkMode = true }: SpotifyProps) {
               </div>
               <div className="flex-1">
                 <p
-                  className={`text-sm font-medium ${currentTrackIndex === index ? "text-green-500" : ""}`}
+                  className={`text-sm font-medium ${safeTrackIndex === index ? "text-green-500" : ""}`}
                 >
                   {track.title}
                 </p>
