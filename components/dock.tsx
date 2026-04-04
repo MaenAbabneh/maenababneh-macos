@@ -5,13 +5,14 @@ import type React from "react";
 import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import { MoreHorizontal } from "lucide-react";
-import type { AppWindow } from "@/types";
 import { DOCK_APPS, type AppRegistryItem } from "@/constants/apps-registry";
 import { UI_MOBILE_BREAKPOINT } from "@/constants/ui-config";
 import {
   APP_WINDOW_DEFAULT_SIZE,
   APP_WINDOW_POSITION_RANGE,
 } from "@/constants/window-config";
+import { useDesktopStore } from "@/store/useDesktopStore";
+import { useIsDarkMode } from "@/hooks/use-is-dark-mode";
 
 const hashString = (input: string) => {
   let hash = 0;
@@ -36,19 +37,14 @@ const getWindowPosition = (seed: string) => {
   };
 };
 
-interface DockProps {
-  onAppClick: (app: AppWindow) => void;
-  onLaunchpadClick: () => void;
-  activeAppIds: string[];
-  isDarkMode: boolean;
-}
+export default function Dock() {
+  const { isDarkMode } = useIsDarkMode();
+  const openWindows = useDesktopStore((s) => s.openWindows);
+  const openApp = useDesktopStore((s) => s.openApp);
+  const toggleLaunchpad = useDesktopStore((s) => s.toggleLaunchpad);
 
-export default function Dock({
-  onAppClick,
-  onLaunchpadClick,
-  activeAppIds,
-  isDarkMode,
-}: DockProps) {
+  const activeAppIds = openWindows.map((w) => w.id);
+
   const [mouseX, setMouseX] = useState<number | null>(null);
   const [dockWidth, setDockWidth] = useState(0);
   const dockRef = useRef<HTMLDivElement>(null);
@@ -85,13 +81,13 @@ export default function Dock({
 
   const handleAppClick = (app: AppRegistryItem) => {
     if (app.id === "launchpad") {
-      onLaunchpadClick();
+      toggleLaunchpad();
       return;
     }
 
     const position = getWindowPosition(`${app.id}:${activeAppIds.length}`);
 
-    onAppClick({
+    openApp({
       id: app.id,
       title: app.title,
       component: app.component,
