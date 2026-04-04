@@ -3,4 +3,7 @@ export const STORAGE_KEYS = {
   isDarkMode: "isDarkMode",
   screenBrightness: "screenBrightness",
   snakeHighScore: "snakeHighScore",
+  desktopState: "desktopState",
+  settingsState: "settingsState",
+  notesState: "notesState",
 } as const;
