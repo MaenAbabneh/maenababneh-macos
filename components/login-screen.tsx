@@ -6,18 +6,14 @@ import { useState, useEffect } from "react";
 import { Moon, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useSystemStore } from "@/store/useSystemStore";
+import { useTheme } from "next-themes";
 
-interface LoginScreenProps {
-  onLogin: () => void;
-  isDarkMode: boolean;
-  onToggleDarkMode: () => void;
-}
+export default function LoginScreen() {
+  const login = useSystemStore((s) => s.login);
+  const { resolvedTheme, setTheme } = useTheme();
+  const isDarkMode = resolvedTheme === "dark";
 
-export default function LoginScreen({
-  onLogin,
-  isDarkMode,
-  onToggleDarkMode,
-}: LoginScreenProps) {
   const [password, setPassword] = useState("");
   const [error, setError] = useState(false);
   const [time, setTime] = useState(new Date());
@@ -35,7 +31,7 @@ export default function LoginScreen({
     e.preventDefault();
 
     if (password.length >= 0) {
-      onLogin();
+      login();
     } else {
       setError(true);
     }
@@ -113,7 +109,7 @@ export default function LoginScreen({
       <div className="fixed bottom-8">
         <button
           className="text-white/80 hover:text-white p-2 rounded-full hover:bg-white/10"
-          onClick={onToggleDarkMode}
+          onClick={() => setTheme(isDarkMode ? "light" : "dark")}
         >
           {isDarkMode ? (
             <Sun className="w-6 h-6" />
