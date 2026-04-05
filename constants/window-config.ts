@@ -23,5 +23,5 @@ export const WINDOW_LAYOUT = {
 export const ANIMATION_DELAYS_MS = {
   launchpadClose: 300,
   safariRefresh: 1000,
-  bootSequence: 3000,
+  bootSequence: 800,
 } as const;

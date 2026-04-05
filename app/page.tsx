@@ -1,12 +1,14 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import BootScreen from "@/components/boot-screen";
 import LoginScreen from "@/components/login-screen";
-import Desktop from "@/components/desktop";
-import SleepScreen from "@/components/sleep-screen";
-import ShutdownScreen from "@/components/shutdown-screen";
-import { useSystemStore } from "@/store/useSystemStore";
 import { useSettingsStore } from "@/store/useSettingsStore";
+import { useSystemStore } from "@/store/useSystemStore";
+
+const Desktop = dynamic(() => import("@/components/desktop"));
+const SleepScreen = dynamic(() => import("@/components/sleep-screen"));
+const ShutdownScreen = dynamic(() => import("@/components/shutdown-screen"));
 
 export default function Home() {
   const systemState = useSystemStore((s) => s.systemState);

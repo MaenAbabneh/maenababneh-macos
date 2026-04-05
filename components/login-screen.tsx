@@ -8,110 +8,66 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useSystemStore } from "@/store/useSystemStore";
 import { useTheme } from "next-themes";
-import gsap from "gsap";
-import { useGSAP } from "@gsap/react";
 
 export default function LoginScreen() {
   const login = useSystemStore((s) => s.login);
   const { resolvedTheme, setTheme } = useTheme();
-  const isDarkMode = resolvedTheme === "dark";
+  const [hasMounted, setHasMounted] = useState(false);
+  const isDarkMode = hasMounted && resolvedTheme === "dark";
 
-  const rootRef = useRef<HTMLDivElement>(null);
-  const lockRef = useRef<HTMLDivElement>(null);
-  const authRef = useRef<HTMLDivElement>(null);
   const passwordInputRef = useRef<HTMLInputElement>(null);
-  const prefersReducedMotionRef = useRef(false);
 
   const [isUnlocked, setIsUnlocked] = useState(false);
   const [password, setPassword] = useState("");
   const [error, setError] = useState(false);
-  const [time, setTime] = useState(new Date());
+  const [time, setTime] = useState<Date | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Update time every second
   useEffect(() => {
-    const timer = setInterval(() => {
+    const timeoutId = window.setTimeout(() => {
+      setHasMounted(true);
+    }, 0);
+
+    return () => window.clearTimeout(timeoutId);
+  }, []);
+
+  // Set the time once on mount. Avoid a ticking clock before interaction,
+  // otherwise LCP can keep moving forward due to repeated repaints.
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => {
+      setTime(new Date());
+    }, 0);
+
+    return () => window.clearTimeout(timeoutId);
+  }, []);
+
+  // Start ticking only after the user unlocks.
+  useEffect(() => {
+    if (!isUnlocked) return;
+    const timeoutId = window.setTimeout(() => {
+      setTime(new Date());
+    }, 0);
+
+    const intervalId = window.setInterval(() => {
       setTime(new Date());
     }, 1000);
 
-    return () => clearInterval(timer);
-  }, []);
+    return () => {
+      window.clearTimeout(timeoutId);
+      window.clearInterval(intervalId);
+    };
+  }, [isUnlocked]);
 
   useEffect(() => {
-    prefersReducedMotionRef.current =
-      window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ?? false;
-  }, []);
-
-  useGSAP(
-    () => {
-      const rootEl = rootRef.current;
-      if (!rootEl) return;
-
-      if (prefersReducedMotionRef.current) return;
-
-      gsap.set(rootEl, { opacity: 0 });
-      gsap.to(rootEl, {
-        opacity: 1,
-        duration: 0.22,
-        ease: "power2.out",
-        clearProps: "opacity",
-      });
-    },
-    { dependencies: [] },
-  );
-
-  useGSAP(
-    () => {
-      const lockEl = lockRef.current;
-      const authEl = authRef.current;
-      if (!lockEl || !authEl) return;
-
-      if (!isUnlocked) {
-        gsap.set(authEl, { opacity: 0, y: 10, pointerEvents: "none" });
-        gsap.set(lockEl, { opacity: 1, y: 0 });
-        return;
-      }
-
-      if (prefersReducedMotionRef.current) {
-        gsap.set(authEl, { opacity: 1, y: 0, pointerEvents: "auto" });
-        passwordInputRef.current?.focus();
-        return;
-      }
-
-      gsap.set(authEl, { pointerEvents: "auto" });
-
-      const timeline = gsap.timeline({
-        defaults: { ease: "power2.out" },
-      });
-
-      timeline.to(lockEl, { opacity: 0.85, y: -10, duration: 0.22 }, 0);
-      timeline.fromTo(
-        authEl,
-        { opacity: 0, y: 10 },
-        {
-          opacity: 1,
-          y: 0,
-          duration: 0.22,
-          clearProps: "opacity,transform",
-          onComplete: () => passwordInputRef.current?.focus(),
-        },
-        0.04,
-      );
-
-      return () => {
-        timeline.kill();
-      };
-    },
-    { dependencies: [isUnlocked] },
-  );
+    if (!isUnlocked) return;
+    window.requestAnimationFrame(() => {
+      passwordInputRef.current?.focus();
+    });
+  }, [isUnlocked]);
 
   const unlock = useCallback(() => {
     if (isUnlocked) return;
     setIsUnlocked(true);
-
-    if (prefersReducedMotionRef.current) {
-      passwordInputRef.current?.focus();
-    }
   }, [isUnlocked]);
 
   useEffect(() => {
@@ -133,61 +89,62 @@ export default function LoginScreen() {
     if (isSubmitting) return;
 
     if (password.length > 0) {
-      if (prefersReducedMotionRef.current) {
-        login();
-        return;
-      }
-
-      const rootEl = rootRef.current;
-      if (!rootEl) {
-        login();
-        return;
-      }
-
       setIsSubmitting(true);
-      gsap.to(rootEl, {
-        opacity: 0,
-        duration: 0.22,
-        ease: "power2.inOut",
-        onComplete: login,
-      });
+      window.setTimeout(() => {
+        login();
+      }, 220);
     } else {
       setError(true);
     }
   };
 
-  const formattedTime = time.toLocaleTimeString("en-US", {
-    hour: "numeric",
-    minute: "2-digit",
-    hour12: true,
-  });
+  const formattedTime = time
+    ? time.toLocaleTimeString("en-US", {
+        hour: "numeric",
+        minute: "2-digit",
+        hour12: true,
+      })
+    : "--:--";
 
-  const formattedDate = time.toLocaleDateString("en-US", {
-    weekday: "long",
-    month: "long",
-    day: "numeric",
-  });
+  const formattedDate = time
+    ? time.toLocaleDateString("en-US", {
+        weekday: "long",
+        month: "long",
+        day: "numeric",
+      })
+    : "";
 
   // Choose wallpaper based on dark/light mode
   const wallpaper = isDarkMode ? "/wallpaper-night.jpg" : "/wallpaper-day.jpg";
 
   return (
     <div
-      ref={rootRef}
-      className="h-screen w-screen bg-cover bg-center flex flex-col items-center justify-center"
+      className={`h-screen w-screen bg-cover bg-center flex flex-col items-center justify-center transition-opacity duration-200 ease-in-out motion-reduce:transition-none ${
+        isSubmitting ? "opacity-0" : "opacity-100"
+      }`}
       style={{ backgroundImage: `url('${wallpaper}')` }}
       onMouseDown={() => {
         if (!isUnlocked) unlock();
       }}
     >
-      <div ref={lockRef} className="flex flex-col items-center mb-8">
+      <div
+        className={`flex flex-col items-center mb-8 transition-all duration-200 ease-out motion-reduce:transition-none motion-reduce:transform-none ${
+          isUnlocked ? "opacity-85 -translate-y-2" : "opacity-100 translate-y-0"
+        }`}
+      >
         <div className="text-white text-5xl font-light mb-2">
           {formattedTime}
         </div>
         <div className="text-white text-xl font-light">{formattedDate}</div>
       </div>
 
-      <div ref={authRef} className="flex flex-col items-center">
+      <div
+        className={`flex flex-col items-center transition-all duration-200 ease-out motion-reduce:transition-none motion-reduce:transform-none ${
+          isUnlocked
+            ? "opacity-100 translate-y-0 pointer-events-auto"
+            : "opacity-0 translate-y-2 pointer-events-none"
+        }`}
+      >
         <div className="w-24 h-24 rounded-full bg-slate-800 flex items-center justify-center mb-4">
           <span className="text-white text-5xl font-bold">D</span>
         </div>
