@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import Image from "next/image";
+import gsap from "gsap";
+import { useGSAP } from "@gsap/react";
 import {
   SPOTLIGHT_APPS,
   type AppRegistryItem,
@@ -42,6 +44,10 @@ export default function Spotlight() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedIndex, setSelectedIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
+  const overlayRef = useRef<HTMLDivElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+  const resultsRef = useRef<HTMLDivElement>(null);
+  const prefersReducedMotionRef = useRef(false);
 
   const filteredApps = useMemo(() => {
     if (!searchTerm) return SPOTLIGHT_APPS;
@@ -73,6 +79,9 @@ export default function Spotlight() {
     // Focus the input when spotlight opens
     inputRef.current?.focus();
 
+    prefersReducedMotionRef.current =
+      window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ?? false;
+
     // Handle escape key to close
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
@@ -95,12 +104,95 @@ export default function Spotlight() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [filteredApps, selectedIndex, handleAppClick, setSpotlightOpen]);
 
+  useGSAP(
+    () => {
+      const overlayEl = overlayRef.current;
+      const panelEl = panelRef.current;
+      if (!overlayEl || !panelEl) return;
+
+      gsap.set(overlayEl, { "--spotlight-blur": "0px" });
+
+      if (prefersReducedMotionRef.current) {
+        gsap.set(panelEl, { opacity: 1, scale: 1, y: 0 });
+        return;
+      }
+
+      gsap.fromTo(
+        panelEl,
+        { opacity: 0, scale: 0.95, y: -8, transformOrigin: "center center" },
+        {
+          opacity: 1,
+          scale: 1,
+          y: 0,
+          duration: 0.36,
+          ease: "back.out(1.6)",
+          clearProps: "opacity,transform",
+        },
+      );
+    },
+    { dependencies: [] },
+  );
+
+  useGSAP(
+    () => {
+      const overlayEl = overlayRef.current;
+      if (!overlayEl) return;
+      if (prefersReducedMotionRef.current) return;
+
+      const blurPx = Math.min(12, Math.max(0, searchTerm.length * 0.8));
+      gsap.to(overlayEl, {
+        duration: 0.18,
+        ease: "power2.out",
+        overwrite: "auto",
+        "--spotlight-blur": `${blurPx}px`,
+      });
+    },
+    { dependencies: [searchTerm] },
+  );
+
+  useGSAP(
+    () => {
+      const resultsEl = resultsRef.current;
+      if (!resultsEl) return;
+      if (prefersReducedMotionRef.current) return;
+
+      const items = resultsEl.querySelectorAll<HTMLElement>(
+        "[data-spotlight-result]",
+      );
+      if (!items.length) return;
+
+      gsap.killTweensOf(items);
+      gsap.fromTo(
+        items,
+        { opacity: 0, y: -6 },
+        {
+          opacity: 1,
+          y: 0,
+          duration: 0.14,
+          ease: "power2.out",
+          stagger: 0.035,
+          clearProps: "opacity,transform",
+        },
+      );
+    },
+    { dependencies: [filteredApps] },
+  );
+
   return (
     <div
+      ref={overlayRef}
       className="fixed inset-0 bg-transparent z-40 flex items-center justify-center"
+      style={
+        {
+          backdropFilter: "blur(var(--spotlight-blur))",
+          WebkitBackdropFilter: "blur(var(--spotlight-blur))",
+          "--spotlight-blur": "0px",
+        } as React.CSSProperties
+      }
       onMouseDown={() => setSpotlightOpen(false)}
     >
       <div
+        ref={panelRef}
         className="w-full max-w-2xl bg-gray-800/80 backdrop-blur-xl rounded-xl overflow-hidden shadow-2xl"
         onMouseDown={(e) => e.stopPropagation()}
       >
@@ -133,11 +225,12 @@ export default function Spotlight() {
         </div>
 
         {filteredApps.length > 0 && (
-          <div className="max-h-80 overflow-y-auto">
+          <div ref={resultsRef} className="max-h-80 overflow-y-auto">
             {filteredApps.map((app, index) => (
               <button
                 key={app.id}
                 type="button"
+                data-spotlight-result
                 className={`flex items-center px-4 py-3 cursor-pointer ${
                   index === selectedIndex ? "bg-blue-500" : "hover:bg-gray-700"
                 }`}
