@@ -265,6 +265,7 @@ export default function Dock() {
                       alt={app.title}
                       width={56}
                       height={56}
+                      priority
                       className={`object-contain ${isMobile ? "w-14 h-14" : "w-12 h-12"}`}
                       draggable={false}
                     />

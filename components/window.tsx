@@ -1,27 +1,57 @@
 "use client";
 
 import type React from "react";
-
+import dynamic from "next/dynamic";
+import { Loader2 } from "lucide-react";
 import { useState, useRef, useEffect, useCallback } from "react";
 import { X, Minus, ArrowRightIcon as ArrowsMaximize } from "lucide-react";
 import gsap from "gsap";
 import Flip from "gsap/Flip";
 import { useGSAP } from "@gsap/react";
 import type { AppWindow } from "@/types";
-import Notes from "@/components/apps/notes";
-import GitHub from "@/components/apps/github";
-import Safari from "@/components/apps/safari";
-import VSCode from "@/components/apps/vscode";
-import FaceTime from "@/components/apps/facetime";
-import Terminal from "@/components/apps/terminal";
-import Mail from "@/components/apps/mail";
-import YouTube from "@/components/apps/youtube";
-import Spotify from "@/components/apps/spotify";
-import Snake from "@/components/apps/snake";
-import Weather from "@/components/apps/weather";
 import { WINDOW_LAYOUT, WINDOW_MIN_SIZE } from "@/constants/window-config";
 import { useDesktopStore } from "@/store/useDesktopStore";
 import { useIsDarkMode } from "@/hooks/use-is-dark-mode";
+
+const AppLoader = () => (
+  <div className="flex items-center justify-center h-full w-full bg-inherit">
+    <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
+  </div>
+);
+
+const Notes = dynamic(() => import("@/components/apps/notes"), {
+  loading: () => <AppLoader />,
+});
+const GitHub = dynamic(() => import("@/components/apps/github"), {
+  loading: () => <AppLoader />,
+});
+const Safari = dynamic(() => import("@/components/apps/safari"), {
+  loading: () => <AppLoader />,
+});
+const VSCode = dynamic(() => import("@/components/apps/vscode"), {
+  loading: () => <AppLoader />,
+});
+const FaceTime = dynamic(() => import("@/components/apps/facetime"), {
+  loading: () => <AppLoader />,
+});
+const Terminal = dynamic(() => import("@/components/apps/terminal"), {
+  loading: () => <AppLoader />,
+});
+const Mail = dynamic(() => import("@/components/apps/mail"), {
+  loading: () => <AppLoader />,
+});
+const YouTube = dynamic(() => import("@/components/apps/youtube"), {
+  loading: () => <AppLoader />,
+});
+const Spotify = dynamic(() => import("@/components/apps/spotify"), {
+  loading: () => <AppLoader />,
+});
+const Snake = dynamic(() => import("@/components/apps/snake"), {
+  loading: () => <AppLoader />,
+});
+const Weather = dynamic(() => import("@/components/apps/weather"), {
+  loading: () => <AppLoader />,
+});
 
 gsap.registerPlugin(Flip);
 

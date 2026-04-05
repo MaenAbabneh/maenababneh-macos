@@ -13,6 +13,7 @@ const nextConfig = {
   cacheComponents: true,
   experimental: {
     turbopackFileSystemCacheForDev: true,
+    optimizePackageImports: ["lucide-react", "gsap"],
     webpackBuildWorker: true,
     parallelServerBuildTraces: true,
     parallelServerCompiles: true,
