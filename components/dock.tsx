@@ -5,6 +5,7 @@ import type React from "react";
 import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import { MoreHorizontal } from "lucide-react";
+import gsap from "gsap";
 import { DOCK_APPS, type AppRegistryItem } from "@/constants/apps-registry";
 import { UI_MOBILE_BREAKPOINT } from "@/constants/ui-config";
 import {
@@ -79,7 +80,31 @@ export default function Dock() {
     };
   }, [showMobileMenu]);
 
-  const handleAppClick = (app: AppRegistryItem) => {
+  const bounceDockIcon = (appId: string, root: HTMLElement) => {
+    const bounceEl = root.querySelector<HTMLElement>(
+      `[data-dock-bounce-id="${appId}"]`,
+    );
+    if (!bounceEl) return;
+    gsap.killTweensOf(bounceEl);
+    gsap.fromTo(
+      bounceEl,
+      { y: 0 },
+      {
+        y: -10,
+        duration: 0.12,
+        ease: "power2.out",
+        yoyo: true,
+        repeat: 1,
+        clearProps: "transform",
+      },
+    );
+  };
+
+  const handleAppClick = (app: AppRegistryItem, e?: React.MouseEvent) => {
+    if (e?.currentTarget) {
+      bounceDockIcon(app.id, e.currentTarget as HTMLElement);
+    }
+
     if (app.id === "launchpad") {
       toggleLaunchpad();
       return;
@@ -148,6 +173,7 @@ export default function Dock() {
   return (
     <div
       ref={dockRef}
+      data-role="dock"
       className="fixed bottom-2 left-1/2 transform -translate-x-1/2 z-50"
     >
       {/* Mobile expanded menu */}
@@ -191,10 +217,18 @@ export default function Dock() {
 
       {/* Main dock */}
       <div
-        className={`px-3 py-2 rounded-2xl 
-          ${isDarkMode ? "bg-white/10" : "bg-white/60"} backdrop-blur-xl 
+        className={`relative px-3 py-2 rounded-2xl 
+          ${isDarkMode ? "bg-white/10" : "bg-white/60"}
           flex items-end border border-white/20 shadow-lg
           ${isMobile ? "h-20" : "h-16"}`}
+        data-dock-root
+        style={
+          {
+            backdropFilter: "blur(var(--dock-blur))",
+            WebkitBackdropFilter: "blur(var(--dock-blur))",
+            "--dock-blur": "20px",
+          } as React.CSSProperties
+        }
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
       >
@@ -204,47 +238,50 @@ export default function Dock() {
           return (
             <button
               key={app.id}
-              className={`flex flex-col items-center justify-end h-full ${isMobile ? "px-3" : "px-2"}`}
+              className={`relative z-10 flex flex-col items-center justify-end h-full ${isMobile ? "px-3" : "px-2"}`}
               style={{
                 transform: isMobile
                   ? "none"
                   : `translateY(${(scale - 1) * -8}px)`,
                 zIndex: scale > 1 ? 10 : 1,
-                transition:
-                  mouseX === null ? "transform 0.2s ease-out" : "none",
+                transition: "transform 0.12s ease-out",
               }}
-              onClick={() => handleAppClick(app)}
+              onClick={(e) => handleAppClick(app, e)}
               type="button"
             >
               <div
                 className="relative cursor-pointer"
+                data-dock-app-id={app.id}
                 style={{
                   transform: isMobile ? "none" : `scale(${scale})`,
                   transformOrigin: "bottom center",
-                  transition:
-                    mouseX === null ? "transform 0.2s ease-out" : "none",
+                  transition: "transform 0.12s ease-out",
                 }}
               >
-                <Image
-                  src={app.icon || "/placeholder.svg"}
-                  alt={app.title}
-                  width={56}
-                  height={56}
-                  className={`object-contain ${isMobile ? "w-14 h-14" : "w-12 h-12"}`}
-                  draggable={false}
-                />
+                <div data-dock-wave-id={app.id}>
+                  <div data-dock-bounce-id={app.id}>
+                    <Image
+                      src={app.icon || "/placeholder.svg"}
+                      alt={app.title}
+                      width={56}
+                      height={56}
+                      className={`object-contain ${isMobile ? "w-14 h-14" : "w-12 h-12"}`}
+                      draggable={false}
+                    />
 
-                {/* Tooltip - only on desktop */}
-                {!isMobile && scale > 1.5 && (
-                  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-1 px-2 py-1 bg-black/70 text-white text-xs rounded whitespace-nowrap">
-                    {app.title}
+                    {/* Tooltip - only on desktop */}
+                    {!isMobile && scale > 1.5 && (
+                      <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-1 px-2 py-1 bg-black/70 text-white text-xs rounded whitespace-nowrap">
+                        {app.title}
+                      </div>
+                    )}
+
+                    {/* Indicator dot for active apps */}
+                    {activeAppIds.includes(app.id) && (
+                      <div className="absolute bottom-[-5px] left-1/2 transform -translate-x-1/2 w-1 h-1 bg-white rounded-full"></div>
+                    )}
                   </div>
-                )}
-
-                {/* Indicator dot for active apps */}
-                {activeAppIds.includes(app.id) && (
-                  <div className="absolute bottom-[-5px] left-1/2 transform -translate-x-1/2 w-1 h-1 bg-white rounded-full"></div>
-                )}
+                </div>
               </div>
             </button>
           );
