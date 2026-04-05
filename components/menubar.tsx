@@ -4,8 +4,9 @@ import type React from "react";
 
 import { useState, useRef, useEffect, useMemo } from "react";
 import Image from "next/image";
-import { Search } from "lucide-react";
+import { Search, X } from "lucide-react";
 import { AppleIcon } from "@/components/icons";
+import gsap from "gsap";
 import { useDesktopStore } from "@/store/useDesktopStore";
 import { useSettingsStore } from "@/store/useSettingsStore";
 import { useSystemStore } from "@/store/useSystemStore";
@@ -35,6 +36,8 @@ interface MenubarProps {
 export default function Menubar({ time }: MenubarProps) {
   const { isDarkMode } = useIsDarkMode();
 
+  const prefersReducedMotionRef = useRef(false);
+
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
   const [batteryLevel, setBatteryLevel] = useState(100);
   const [isCharging, setIsCharging] = useState(false);
@@ -45,6 +48,7 @@ export default function Menubar({ time }: MenubarProps) {
 
   const toggleSpotlight = useDesktopStore((s) => s.toggleSpotlight);
   const toggleControlCenter = useDesktopStore((s) => s.toggleControlCenter);
+  const requestCloseWindow = useDesktopStore((s) => s.requestCloseWindow);
   const activeWindowId = useDesktopStore((s) => s.activeWindowId);
   const openWindows = useDesktopStore((s) => s.openWindows);
 
@@ -76,6 +80,9 @@ export default function Menubar({ time }: MenubarProps) {
   };
 
   useEffect(() => {
+    prefersReducedMotionRef.current =
+      window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ?? false;
+
     // Try to get battery information if available
     const nav = navigator as NavigatorWithBattery;
 
@@ -129,6 +136,31 @@ export default function Menubar({ time }: MenubarProps) {
     };
   }, []);
 
+  const runDesktopExitTransition = (next: () => void) => {
+    setActiveMenu(null);
+
+    if (prefersReducedMotionRef.current) {
+      next();
+      return;
+    }
+
+    const desktopEl = document.querySelector<HTMLElement>(
+      '[data-screen="desktop"]',
+    );
+    if (!desktopEl) {
+      next();
+      return;
+    }
+
+    gsap.killTweensOf(desktopEl);
+    gsap.to(desktopEl, {
+      opacity: 0,
+      duration: 0.18,
+      ease: "power2.inOut",
+      onComplete: next,
+    });
+  };
+
   const toggleMenu = (menuName: string) => {
     if (activeMenu === menuName) {
       setActiveMenu(null);
@@ -142,9 +174,7 @@ export default function Menubar({ time }: MenubarProps) {
     setShowWifiToggle(!showWifiToggle);
   };
 
-  const menuBgClass = isDarkMode
-    ? "bg-black/40 backdrop-blur-md"
-    : "bg-white/20 backdrop-blur-md";
+  const menuBgClass = isDarkMode ? "bg-black/40" : "bg-white/20";
   const dropdownBgClass = isDarkMode
     ? "bg-gray-800/90 backdrop-blur-md"
     : "bg-gray-200/90 backdrop-blur-md";
@@ -154,12 +184,22 @@ export default function Menubar({ time }: MenubarProps) {
   return (
     <div
       ref={menuRef}
+      data-role="menubar"
       className={`fixed top-0 left-0 right-0 h-6 ${menuBgClass} z-50 flex items-center px-4 ${textClass} text-sm`}
+      style={
+        {
+          backdropFilter: "blur(var(--menubar-blur))",
+          WebkitBackdropFilter: "blur(var(--menubar-blur))",
+          "--menubar-blur": "20px",
+        } as React.CSSProperties
+      }
     >
-      <div className="flex-1 flex items-center">
+      <div className="flex-1 flex items-center" data-menubar-left>
         <button
+          data-menubar-left-item
           className="flex items-center mr-4 hover:bg-white/10 px-2 py-0.5 rounded"
           onClick={() => toggleMenu("apple")}
+          type="button"
         >
           <AppleIcon className="w-4 h-4" />
         </button>
@@ -181,26 +221,26 @@ export default function Menubar({ time }: MenubarProps) {
             <div className="border-t border-gray-700 my-1"></div>
             <button
               className={`w-full text-left px-4 py-1 ${hoverClass}`}
-              onClick={sleep}
+              onClick={() => runDesktopExitTransition(sleep)}
             >
               Sleep
             </button>
             <button
               className={`w-full text-left px-4 py-1 ${hoverClass}`}
-              onClick={restart}
+              onClick={() => runDesktopExitTransition(restart)}
             >
               Restart...
             </button>
             <button
               className={`w-full text-left px-4 py-1 ${hoverClass}`}
-              onClick={shutdown}
+              onClick={() => runDesktopExitTransition(shutdown)}
             >
               Shut Down...
             </button>
             <div className="border-t border-gray-700 my-1"></div>
             <button
               className={`w-full text-left px-4 py-1 ${hoverClass}`}
-              onClick={logout}
+              onClick={() => runDesktopExitTransition(logout)}
             >
               Log Out Daniel...
             </button>
@@ -208,18 +248,38 @@ export default function Menubar({ time }: MenubarProps) {
         )}
 
         {activeWindow && (
-          <button
-            className={`mr-4 font-medium hover:bg-white/10 px-2 py-0.5 rounded ${activeMenu === "app" ? "bg-white/10" : ""}`}
-            onClick={() => toggleMenu("app")}
-          >
-            {activeWindow.title}
-          </button>
+          <div className="flex items-center mr-4" data-menubar-left-item>
+            <button
+              className={`font-medium hover:bg-white/10 px-2 py-0.5 rounded ${activeMenu === "app" ? "bg-white/10" : ""}`}
+              onClick={() => toggleMenu("app")}
+              type="button"
+            >
+              {activeWindow.title}
+            </button>
+
+            <button
+              className="ml-1 hover:bg-white/10 px-1.5 py-0.5 rounded"
+              type="button"
+              aria-label="Close window"
+              onClick={(e) => {
+                e.stopPropagation();
+                if (!activeWindowId) return;
+                requestCloseWindow(activeWindowId);
+                setActiveMenu(null);
+              }}
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </div>
         )}
       </div>
 
-      <div className="flex items-center space-x-3">
-        <span className="mr-1">{batteryLevel}%</span>
-        <div className="relative">
+      <div className="flex items-center space-x-3" data-menubar-right>
+        <span className="mr-1" data-menubar-right-item>
+          {batteryLevel}%
+        </span>
+
+        <div className="relative" data-menubar-right-item>
           <div className="w-6 h-3 border border-current rounded-sm relative">
             <div
               className="absolute top-0 left-0 bottom-0 bg-current"
@@ -234,7 +294,7 @@ export default function Menubar({ time }: MenubarProps) {
           </div>
         </div>
 
-        <div className="relative">
+        <div className="relative" data-menubar-right-item>
           <button className="wifi-icon" onClick={toggleWifiPopup}>
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -288,13 +348,15 @@ export default function Menubar({ time }: MenubarProps) {
           )}
         </div>
 
-        <button onClick={toggleSpotlight}>
+        <button onClick={toggleSpotlight} data-menubar-right-item type="button">
           <Search className="w-4 h-4" />
         </button>
 
         <button
           onClick={toggleControlCenter}
           className="flex items-center justify-center"
+          data-menubar-right-item
+          type="button"
         >
           <Image
             src="/control-center-icon.webp"
@@ -309,7 +371,7 @@ export default function Menubar({ time }: MenubarProps) {
           />
         </button>
 
-        <span>{formattedTime}</span>
+        <span data-menubar-right-item>{formattedTime}</span>
       </div>
     </div>
   );
