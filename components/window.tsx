@@ -11,7 +11,9 @@ import { useGSAP } from "@gsap/react";
 import type { AppWindow } from "@/types";
 import { WINDOW_LAYOUT, WINDOW_MIN_SIZE } from "@/constants/window-config";
 import { useDesktopStore } from "@/store/useDesktopStore";
+import { useSettingsStore } from "@/store/useSettingsStore";
 import { useIsDarkMode } from "@/hooks/use-is-dark-mode";
+import { useUISound } from "@/hooks/useUISounds";
 
 const AppLoader = () => (
   <div className="flex items-center justify-center h-full w-full bg-inherit">
@@ -52,6 +54,12 @@ const Snake = dynamic(() => import("@/components/apps/snake"), {
 const Weather = dynamic(() => import("@/components/apps/weather"), {
   loading: () => <AppLoader />,
 });
+const Website = dynamic(() => import("@/components/apps/website"), {
+  loading: () => <AppLoader />,
+});
+const Settings = dynamic(() => import("@/components/apps/settings"), {
+  loading: () => <AppLoader />,
+});
 
 gsap.registerPlugin(Flip);
 
@@ -70,6 +78,8 @@ const componentMap: Record<
   Spotify,
   Snake,
   Weather,
+  Website,
+  Settings,
 };
 
 interface WindowProps {
@@ -83,6 +93,13 @@ export default function Window({
   isActive,
   windowId,
 }: WindowProps) {
+  const {
+    playSwoosh,
+    playCloseWindow,
+    playMinimizeWindow,
+    playSwitchOn,
+    playSwitchOff,
+  } = useUISound();
   const closeWindow = useDesktopStore((s) => s.closeWindow);
   const focusWindow = useDesktopStore((s) => s.focusWindow);
   const minimizeWindow = useDesktopStore((s) => s.minimizeWindow);
@@ -93,6 +110,7 @@ export default function Window({
   const finishOpenWindow = useDesktopStore((s) => s.finishOpenWindow);
   const closingWindowIds = useDesktopStore((s) => s.closingWindowIds);
   const clearCloseRequest = useDesktopStore((s) => s.clearCloseRequest);
+  const reduceMotion = useSettingsStore((s) => s.reduceMotion);
   const { isDarkMode } = useIsDarkMode();
 
   const isMinimized = minimizedWindowIds.includes(windowId);
@@ -143,8 +161,9 @@ export default function Window({
   useGSAP(() => {
     if (typeof window === "undefined") return;
     prefersReducedMotionRef.current =
-      window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ?? false;
-  }, []);
+      (window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ??
+        false) || reduceMotion;
+  }, [reduceMotion]);
 
   useGSAP(
     () => {
@@ -325,6 +344,7 @@ export default function Window({
             clearProps:
               "transform,opacity,visibility,pointerEvents,willChange,filter",
           });
+          playSwoosh();
           finishOpenWindow(windowId);
         },
       });
@@ -452,6 +472,7 @@ export default function Window({
             clearProps:
               "transform,opacity,visibility,pointerEvents,willChange,filter",
           });
+          // playSwoosh();
           finishRestoreWindow(windowId);
         },
       });
@@ -471,6 +492,7 @@ export default function Window({
   const handleClose = useCallback(() => {
     if (isClosingRef.current) return;
     if (isMinimized) {
+      playCloseWindow();
       closeWindow(windowId);
       return;
     }
@@ -486,9 +508,12 @@ export default function Window({
 
       const windowEl = windowRef.current;
       if (!windowEl || prefersReducedMotionRef.current) {
+        playCloseWindow();
         closeWindow(windowId);
         return;
       }
+
+      playCloseWindow();
 
       const dockTarget = getDockTarget();
       if (!dockTarget) {
@@ -540,7 +565,14 @@ export default function Window({
         onComplete: () => closeWindow(windowId),
       });
     })();
-  }, [closeWindow, contextSafe, getDockTarget, isMinimized, windowId]);
+  }, [
+    closeWindow,
+    contextSafe,
+    getDockTarget,
+    isMinimized,
+    playCloseWindow,
+    windowId,
+  ]);
 
   useGSAP(
     () => {
@@ -683,6 +715,7 @@ export default function Window({
 
   const toggleMaximize = () => {
     if (isMaximized) {
+      playSwitchOff();
       // Restore previous state
       positionRef.current = preMaximizeState.position;
       sizeRef.current = preMaximizeState.size;
@@ -695,6 +728,7 @@ export default function Window({
       setDraftPosition(null);
       setDraftSize(null);
     } else {
+      playSwitchOn();
       // Save current state before maximizing
       setPreMaximizeState({ position, size });
 
@@ -732,6 +766,8 @@ export default function Window({
       setIsDragging(false);
       setIsResizing(false);
       setResizeDirection(null);
+
+      playMinimizeWindow();
 
       if (prefersReducedMotionRef.current) {
         minimizeWindow(windowId);
