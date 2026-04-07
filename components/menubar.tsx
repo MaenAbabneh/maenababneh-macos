@@ -11,6 +11,7 @@ import { useDesktopStore } from "@/store/useDesktopStore";
 import { useSettingsStore } from "@/store/useSettingsStore";
 import { useSystemStore } from "@/store/useSystemStore";
 import { useIsDarkMode } from "@/hooks/use-is-dark-mode";
+import { useUISound } from "@/hooks/useUISounds";
 
 type BatteryManager = {
   level: number;
@@ -35,6 +36,7 @@ interface MenubarProps {
 
 export default function Menubar({ time }: MenubarProps) {
   const { isDarkMode } = useIsDarkMode();
+  const { playSwitchOn, playSwitchOff, playPop } = useUISound();
 
   const prefersReducedMotionRef = useRef(false);
 
@@ -45,9 +47,11 @@ export default function Menubar({ time }: MenubarProps) {
 
   const wifiEnabled = useSettingsStore((s) => s.wifiEnabled);
   const toggleWifi = useSettingsStore((s) => s.toggleWifi);
+  const reduceMotion = useSettingsStore((s) => s.reduceMotion);
 
   const toggleSpotlight = useDesktopStore((s) => s.toggleSpotlight);
   const toggleControlCenter = useDesktopStore((s) => s.toggleControlCenter);
+  const showControlCenter = useDesktopStore((s) => s.showControlCenter);
   const requestCloseWindow = useDesktopStore((s) => s.requestCloseWindow);
   const activeWindowId = useDesktopStore((s) => s.activeWindowId);
   const openWindows = useDesktopStore((s) => s.openWindows);
@@ -81,7 +85,8 @@ export default function Menubar({ time }: MenubarProps) {
 
   useEffect(() => {
     prefersReducedMotionRef.current =
-      window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ?? false;
+      (window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ??
+        false) || reduceMotion;
 
     // Try to get battery information if available
     const nav = navigator as NavigatorWithBattery;
@@ -134,10 +139,11 @@ export default function Menubar({ time }: MenubarProps) {
         batteryManager.removeEventListener("chargingchange", onChargingChange);
       }
     };
-  }, []);
+  }, [reduceMotion]);
 
   const runDesktopExitTransition = (next: () => void) => {
     setActiveMenu(null);
+    playPop();
 
     if (prefersReducedMotionRef.current) {
       next();
@@ -169,9 +175,32 @@ export default function Menubar({ time }: MenubarProps) {
     }
   };
 
+  const handleAppleMenuToggle = () => {
+    playPop();
+    toggleMenu("apple");
+  };
+
   const toggleWifiPopup = (e: React.MouseEvent) => {
     e.stopPropagation();
+    playPop();
     setShowWifiToggle(!showWifiToggle);
+  };
+
+  const handleWifiToggle = () => {
+    const nextWifiEnabled = !wifiEnabled;
+    if (nextWifiEnabled) {
+      playSwitchOn();
+    } else {
+      playSwitchOff();
+    }
+    toggleWifi();
+  };
+
+  const handleControlCenterToggle = () => {
+    if (!showControlCenter) {
+      playPop();
+    }
+    toggleControlCenter();
   };
 
   const menuBgClass = isDarkMode ? "bg-black/40" : "bg-white/20";
@@ -198,7 +227,7 @@ export default function Menubar({ time }: MenubarProps) {
         <button
           data-menubar-left-item
           className="flex items-center mr-4 hover:bg-white/10 px-2 py-0.5 rounded"
-          onClick={() => toggleMenu("apple")}
+          onClick={handleAppleMenuToggle}
           type="button"
         >
           <AppleIcon className="w-4 h-4" />
@@ -242,7 +271,7 @@ export default function Menubar({ time }: MenubarProps) {
               className={`w-full text-left px-4 py-1 ${hoverClass}`}
               onClick={() => runDesktopExitTransition(logout)}
             >
-              Log Out Daniel...
+              Log Out Maen...
             </button>
           </div>
         )}
@@ -338,7 +367,7 @@ export default function Menubar({ time }: MenubarProps) {
                   <input
                     type="checkbox"
                     checked={wifiEnabled}
-                    onChange={toggleWifi}
+                    onChange={handleWifiToggle}
                     className="sr-only peer"
                   />
                   <div className="w-11 h-6 bg-gray-500 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-500"></div>
@@ -353,7 +382,7 @@ export default function Menubar({ time }: MenubarProps) {
         </button>
 
         <button
-          onClick={toggleControlCenter}
+          onClick={handleControlCenterToggle}
           className="flex items-center justify-center"
           data-menubar-right-item
           type="button"
