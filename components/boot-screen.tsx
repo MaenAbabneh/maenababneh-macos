@@ -3,11 +3,13 @@
 import { useCallback, useEffect, useRef } from "react";
 import { AppleIcon } from "@/components/icons";
 import { ANIMATION_DELAYS_MS } from "@/constants/window-config";
+import { useSettingsStore } from "@/store/useSettingsStore";
 import { useSystemStore } from "@/store/useSystemStore";
 
 export default function BootScreen() {
   const systemState = useSystemStore((s) => s.systemState);
   const setSystemState = useSystemStore((s) => s.setSystemState);
+  const reduceMotion = useSettingsStore((s) => s.reduceMotion);
 
   const hasCompletedRef = useRef(false);
 
@@ -27,7 +29,9 @@ export default function BootScreen() {
     hasCompletedRef.current = false;
 
     const reduced =
-      window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ?? false;
+      (window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ??
+        false) ||
+      reduceMotion;
 
     const totalMs = reduced ? 0 : ANIMATION_DELAYS_MS.bootSequence + 220;
     const timer = window.setTimeout(() => {
@@ -35,7 +39,7 @@ export default function BootScreen() {
     }, totalMs);
 
     return () => window.clearTimeout(timer);
-  }, [finishBoot, systemState]);
+  }, [finishBoot, reduceMotion, systemState]);
 
   return (
     <div
