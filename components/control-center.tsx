@@ -14,11 +14,14 @@ import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { CONTROL_CENTER_CONFIG } from "@/constants/ui-config";
 import { useSettingsStore } from "@/store/useSettingsStore";
+import { useMediaStore } from "@/store/useMediaStore";
 import { useIsDarkMode } from "@/hooks/use-is-dark-mode";
+import { useUISound } from "@/hooks/useUISounds";
 import { useTheme } from "next-themes";
 export default function ControlCenter() {
   const { isDarkMode } = useIsDarkMode();
   const { setTheme } = useTheme();
+  const { playSwitchOn, playSwitchOff } = useUISound();
 
   const wifiEnabled = useSettingsStore((s) => s.wifiEnabled);
   const toggleWifi = useSettingsStore((s) => s.toggleWifi);
@@ -28,6 +31,9 @@ export default function ControlCenter() {
   const setBrightness = useSettingsStore((s) => s.setBrightness);
   const volume = useSettingsStore((s) => s.volume);
   const setVolume = useSettingsStore((s) => s.setVolume);
+  const reduceMotion = useSettingsStore((s) => s.reduceMotion);
+  const globalMusicMuted = useMediaStore((s) => s.globalMusicMuted);
+  const setGlobalMusicMuted = useMediaStore((s) => s.setGlobalMusicMuted);
 
   const panelRef = useRef<HTMLDivElement>(null);
   const gridRef = useRef<HTMLDivElement>(null);
@@ -61,8 +67,10 @@ export default function ControlCenter() {
 
   useEffect(() => {
     prefersReducedMotionRef.current =
-      window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ?? false;
-  }, []);
+      (window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ??
+        false) ||
+      reduceMotion;
+  }, [reduceMotion]);
 
   useEffect(() => {
     if (!draggingSlider) return;
@@ -143,6 +151,10 @@ export default function ControlCenter() {
 
   const scheduleVolumeUpdate = (value: number) => {
     pendingVolumeRef.current = value;
+    const nextGlobalMute = value === 0;
+    if (globalMusicMuted !== nextGlobalMute) {
+      setGlobalMusicMuted(nextGlobalMute);
+    }
     if (volumeRafRef.current) return;
     volumeRafRef.current = requestAnimationFrame(() => {
       volumeRafRef.current = null;
@@ -164,6 +176,15 @@ export default function ControlCenter() {
     }
   };
 
+  const playSwitchSound = (nextState: boolean) => {
+    if (nextState) {
+      playSwitchOn();
+      return;
+    }
+
+    playSwitchOff();
+  };
+
   return (
     <div
       ref={panelRef}
@@ -176,7 +197,10 @@ export default function ControlCenter() {
             className={`flex flex-col items-center justify-center p-3 rounded-xl ${
               wifiEnabled ? "bg-blue-500" : "bg-gray-700"
             }`}
-            onClick={toggleWifi}
+            onClick={() => {
+              playSwitchSound(!wifiEnabled);
+              toggleWifi();
+            }}
           >
             <Wifi className="w-6 h-6 text-white mb-1" />
             <span className="text-white text-xs">Wi-Fi</span>
@@ -186,7 +210,10 @@ export default function ControlCenter() {
             className={`flex flex-col items-center justify-center p-3 rounded-xl ${
               bluetoothEnabled ? "bg-blue-500" : "bg-gray-700"
             }`}
-            onClick={toggleBluetooth}
+            onClick={() => {
+              playSwitchSound(!bluetoothEnabled);
+              toggleBluetooth();
+            }}
           >
             <Bluetooth className="w-6 h-6 text-white mb-1" />
             <span className="text-white text-xs">Bluetooth</span>
@@ -196,7 +223,10 @@ export default function ControlCenter() {
             className={`flex flex-col items-center justify-center p-3 rounded-xl ${
               isDarkMode ? "bg-blue-500" : "bg-gray-700"
             }`}
-            onClick={() => setTheme(isDarkMode ? "light" : "dark")}
+            onClick={() => {
+              playSwitchSound(!isDarkMode);
+              setTheme(isDarkMode ? "light" : "dark");
+            }}
           >
             {isDarkMode ? (
               <Moon className="w-6 h-6 text-white mb-1" />
@@ -212,7 +242,10 @@ export default function ControlCenter() {
             className={`flex flex-col items-center justify-center p-3 rounded-xl ${
               isFullscreen ? "bg-blue-500" : "bg-gray-700"
             }`}
-            onClick={toggleFullscreen}
+            onClick={() => {
+              playSwitchSound(!isFullscreen);
+              toggleFullscreen();
+            }}
           >
             <Maximize className="w-6 h-6 text-white mb-1" />
             <span className="text-white text-xs">
