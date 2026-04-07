@@ -15,11 +15,13 @@ import {
   Repeat,
 } from "lucide-react";
 import { useIsDarkMode } from "@/hooks/use-is-dark-mode";
+import { useUISound } from "@/hooks/useUISounds";
 import { useMediaStore } from "@/store/useMediaStore";
 import { SPOTIFY_PLAYLIST } from "@/constants/music-data";
 
 export default function Spotify() {
   const { isDarkMode } = useIsDarkMode();
+  const { playDisabled } = useUISound();
 
   const isPlaying = useMediaStore((s) => s.spotifyIsPlaying);
   const setIsPlaying = useMediaStore((s) => s.setSpotifyIsPlaying);
@@ -30,6 +32,7 @@ export default function Spotify() {
   const isMuted = useMediaStore((s) => s.spotifyIsMuted);
   const setIsMuted = useMediaStore((s) => s.setSpotifyIsMuted);
   const toggleMute = useMediaStore((s) => s.toggleSpotifyMute);
+  const globalMusicMuted = useMediaStore((s) => s.globalMusicMuted);
 
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
@@ -158,8 +161,9 @@ export default function Spotify() {
     const audio = audioRef.current;
     if (!audio) return;
 
-    audio.volume = isMuted ? 0 : volume;
-  }, [volume, isMuted]);
+    const effectiveMuted = isMuted || globalMusicMuted;
+    audio.volume = effectiveMuted ? 0 : volume;
+  }, [volume, isMuted, globalMusicMuted]);
 
   const togglePlay = () => {
     if (!isAudioReady) {
@@ -184,8 +188,19 @@ export default function Spotify() {
 
   const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newVolume = Number.parseFloat(e.target.value);
+    if (newVolume === 0 && !isMuted) {
+      playDisabled();
+    }
     setVolume(newVolume);
     setIsMuted(newVolume === 0);
+  };
+
+  const handleMuteToggle = () => {
+    const nextMuted = !isMuted;
+    if (nextMuted) {
+      playDisabled();
+    }
+    toggleMute();
   };
 
   const formatTime = (time: number) => {
@@ -309,9 +324,9 @@ export default function Spotify() {
         <div className="flex items-center w-full max-w-xs">
           <button
             className="p-2 rounded-full hover:bg-gray-700 mr-2"
-            onClick={toggleMute}
+            onClick={handleMuteToggle}
           >
-            {isMuted ? (
+            {isMuted || globalMusicMuted ? (
               <VolumeX className="w-4 h-4" />
             ) : (
               <Volume2 className="w-4 h-4" />
