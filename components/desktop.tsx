@@ -15,10 +15,12 @@ import Spotlight from "@/components/spotlight";
 import { useDesktopStore } from "@/store/useDesktopStore";
 import { useSettingsStore } from "@/store/useSettingsStore";
 import { useSystemStore } from "@/store/useSystemStore";
+import { useUISound } from "@/hooks/useUISounds";
 import { UI_MOBILE_BREAKPOINT } from "@/constants/ui-config";
 
 export default function Desktop() {
   const [time, setTime] = useState(new Date());
+  const { playPop } = useUISound();
 
   const desktopIntroNonce = useSystemStore((s) => s.desktopIntroNonce);
   const desktopIntroLastPlayedNonce = useSystemStore(
@@ -39,6 +41,7 @@ export default function Desktop() {
   );
 
   const screenBrightness = useSettingsStore((s) => s.screenBrightness);
+  const reduceMotion = useSettingsStore((s) => s.reduceMotion);
   const rootRef = useRef<HTMLDivElement>(null);
   const desktopRef = useRef<HTMLDivElement>(null);
   const prefersReducedMotionRef = useRef(false);
@@ -55,8 +58,10 @@ export default function Desktop() {
 
   useEffect(() => {
     prefersReducedMotionRef.current =
-      window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ?? false;
-  }, []);
+      (window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ??
+        false) ||
+      reduceMotion;
+  }, [reduceMotion]);
 
   useGSAP(
     () => {
@@ -383,6 +388,9 @@ export default function Desktop() {
   const handleDesktopClick = (e: React.MouseEvent) => {
     // Only handle clicks directly on the desktop, not on children
     if (e.target === desktopRef.current) {
+      if (showControlCenter) {
+        playPop();
+      }
       desktopBackgroundClick();
     }
   };
