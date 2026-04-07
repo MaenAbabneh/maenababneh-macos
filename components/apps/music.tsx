@@ -12,6 +12,7 @@ import {
 import Image from "next/image";
 import { Slider } from "@/components/ui/slider";
 import { MUSIC_PLAYLIST } from "@/constants/music-data";
+import { useUISound } from "@/hooks/useUISounds";
 import { useMediaStore } from "@/store/useMediaStore";
 
 export default function Music() {
@@ -26,6 +27,8 @@ export default function Music() {
   const isMuted = useMediaStore((s) => s.musicIsMuted);
   const setIsMuted = useMediaStore((s) => s.setMusicIsMuted);
   const toggleMute = useMediaStore((s) => s.toggleMusicMute);
+  const globalMusicMuted = useMediaStore((s) => s.globalMusicMuted);
+  const { playDisabled } = useUISound();
 
   const audioRef = useRef<HTMLAudioElement>(null);
 
@@ -85,8 +88,9 @@ export default function Music() {
     const audio = audioRef.current;
     if (!audio) return;
 
-    audio.volume = isMuted ? 0 : volume;
-  }, [volume, isMuted]);
+    const effectiveMuted = isMuted || globalMusicMuted;
+    audio.volume = effectiveMuted ? 0 : volume;
+  }, [volume, isMuted, globalMusicMuted]);
 
   const togglePlay = () => {
     setIsPlaying(!isPlaying);
@@ -108,8 +112,19 @@ export default function Music() {
   };
 
   const handleVolumeChange = (value: number[]) => {
+    if (value[0] === 0 && !isMuted) {
+      playDisabled();
+    }
     setVolume(value[0]);
     setIsMuted(value[0] === 0);
+  };
+
+  const handleMuteToggle = () => {
+    const nextMuted = !isMuted;
+    if (nextMuted) {
+      playDisabled();
+    }
+    toggleMute();
   };
 
   const formatTime = (time: number) => {
@@ -181,10 +196,10 @@ export default function Music() {
 
         <div className="flex items-center w-full max-w-xs">
           <button
-            onClick={toggleMute}
+            onClick={handleMuteToggle}
             className="p-2 rounded-full hover:bg-gray-100 mr-2"
           >
-            {isMuted ? (
+            {isMuted || globalMusicMuted ? (
               <VolumeX className="w-5 h-5" />
             ) : (
               <Volume2 className="w-5 h-5" />
