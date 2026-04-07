@@ -1,33 +1,46 @@
-export const MAIL_TO_URL = "mailto:mail@danielprior.dk";
-export const YOUTUBE_CHANNEL_URL = "https://www.youtube.com/@DanielPrior0";
+export const MAIL_TO_URL = "mailto:hi@maenababneh.dev";
+export const YOUTUBE_CHANNEL_URL = "https://www.youtube.com/@thecompasstech";
+export const WEBSITE_URL = "https://maenababneh.dev";
+export const RESUME_URL = "/resume.pdf";
+
+export const LINKEDIN_URL = "https://www.linkedin.com/in/maenababneh/";
+export const GITHUB_URL = "https://github.com/maenababneh";
 
 export interface WebsiteLink {
   title: string;
-  url: string;
+  demoUrl: string;
+  githubUrl: string;
   description: string;
   image: string;
 }
 
 export const PERSONAL_WEBSITES: WebsiteLink[] = [
   {
-    title: "Personal Blog",
-    url: "https://blog.example.com",
+    title: "CreativeFlow",
+    demoUrl: "https://creative-overflow.maenababneh.dev/",
+    githubUrl: "https://github.com/MaenAbabneh/creativeflow",
     description:
-      "My personal blog where I write about web development, technology, and more.",
-    image: "/placeholder.svg?height=200&width=300&query=blog website",
+      "Basically Stack Overflow, but with AI answers and way less passive-aggressive devs closing your questions as 'duplicate'. Built with Next.js Server Actions for that sweet performance.",
+    image:
+      "https://images.unsplash.com/photo-1555099962-4199c345e5dd?q=80&w=2070&auto=format&fit=crop",
   },
   {
-    title: "Photography Portfolio",
-    url: "https://photos.example.com",
-    description: "A collection of my photography work from around the world.",
-    image: "/placeholder.svg?height=200&width=300&query=photography portfolio",
+    title: "GTA VI Landing Page",
+    demoUrl: "https://gta.maenababneh.dev/",
+    githubUrl: "https://github.com/MaenAbabneh/gta-landingPage",
+    description:
+      "Rockstar was taking too long, so I animated my own. Pushed GSAP to its absolute limits for buttery-smooth scrolling experiences, all while praying Take-Two doesn't sue me.",
+    image:
+      "https://images.unsplash.com/photo-1555099962-4199c345e5dd?q=80&w=2070&auto=format&fit=crop",
   },
   {
-    title: "Side Project",
-    url: "https://project.example.com",
+    title: "3D Interactive Portfolio",
+    demoUrl: "https://maenababneh.dev/",
+    githubUrl: "https://github.com/MaenAbabneh/3d-portfolio",
     description:
-      "An experimental web application I built to explore new technologies.",
-    image: "/placeholder.svg?height=200&width=300&query=web application",
+      "Because flat websites are so 2010. I built a fully interactive 3D universe using Next.js and Three.js just to flex my graphics programming skills—and to mildly stress-test your browser's GPU. Don't worry, it's optimized.",
+    image:
+      "https://images.unsplash.com/photo-1555099962-4199c345e5dd?q=80&w=2070&auto=format&fit=crop",
   },
 ];
 
@@ -40,12 +53,12 @@ export interface SafariQuickLink {
 export const SAFARI_SOCIAL_LINKS: SafariQuickLink[] = [
   {
     title: "LinkedIn",
-    url: "https://www.linkedin.com/in/daniel-prior-53a679195/",
+    url: LINKEDIN_URL,
     icon: "/linkedin.png",
   },
   {
     title: "GitHub",
-    url: "https://github.com/daprior",
+    url: GITHUB_URL,
     icon: "/github.png",
   },
   {
