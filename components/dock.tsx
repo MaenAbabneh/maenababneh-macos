@@ -14,6 +14,7 @@ import {
 } from "@/constants/window-config";
 import { useDesktopStore } from "@/store/useDesktopStore";
 import { useIsDarkMode } from "@/hooks/use-is-dark-mode";
+import { useUISound } from "@/hooks/useUISounds";
 
 const hashString = (input: string) => {
   let hash = 0;
@@ -40,6 +41,7 @@ const getWindowPosition = (seed: string) => {
 
 export default function Dock() {
   const { isDarkMode } = useIsDarkMode();
+  const { playPop } = useUISound();
   const openWindows = useDesktopStore((s) => s.openWindows);
   const openApp = useDesktopStore((s) => s.openApp);
   const toggleLaunchpad = useDesktopStore((s) => s.toggleLaunchpad);
@@ -127,6 +129,10 @@ export default function Dock() {
     if (showMobileMenu) {
       setShowMobileMenu(false);
     }
+  };
+
+  const handleAppHover = () => {
+    playPop();
   };
 
   const handleMouseMove = (e: React.MouseEvent) => {
@@ -246,6 +252,7 @@ export default function Dock() {
                 zIndex: scale > 1 ? 10 : 1,
                 transition: "transform 0.12s ease-out",
               }}
+              onMouseEnter={handleAppHover}
               onClick={(e) => handleAppClick(app, e)}
               type="button"
             >
