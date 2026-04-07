@@ -9,6 +9,7 @@ type MediaState = {
   musicTrackIndex: number;
   musicVolume: number;
   musicIsMuted: boolean;
+  globalMusicMuted: boolean;
 
   spotifyIsPlaying: boolean;
   spotifyTrackIndex: number;
@@ -22,6 +23,7 @@ type MediaActions = {
   setMusicVolume: (volume: number) => void;
   setMusicIsMuted: (muted: boolean) => void;
   toggleMusicMute: () => void;
+  setGlobalMusicMuted: (muted: boolean) => void;
 
   setSpotifyIsPlaying: (playing: boolean) => void;
   setSpotifyTrackIndex: (index: number) => void;
@@ -39,6 +41,7 @@ export const useMediaStore = create<MediaStore>()(
       musicTrackIndex: 0,
       musicVolume: MUSIC_CONFIG.defaultVolume,
       musicIsMuted: false,
+      globalMusicMuted: false,
 
       spotifyIsPlaying: false,
       spotifyTrackIndex: 0,
@@ -50,6 +53,7 @@ export const useMediaStore = create<MediaStore>()(
       setMusicVolume: (volume) => set({ musicVolume: volume }),
       setMusicIsMuted: (muted) => set({ musicIsMuted: muted }),
       toggleMusicMute: () => set({ musicIsMuted: !get().musicIsMuted }),
+      setGlobalMusicMuted: (muted) => set({ globalMusicMuted: muted }),
 
       setSpotifyIsPlaying: (playing) => set({ spotifyIsPlaying: playing }),
       setSpotifyTrackIndex: (index) => set({ spotifyTrackIndex: index }),
@@ -66,6 +70,7 @@ export const useMediaStore = create<MediaStore>()(
         musicTrackIndex: state.musicTrackIndex,
         musicVolume: state.musicVolume,
         musicIsMuted: state.musicIsMuted,
+        globalMusicMuted: state.globalMusicMuted,
         spotifyTrackIndex: state.spotifyTrackIndex,
         spotifyVolume: state.spotifyVolume,
         spotifyIsMuted: state.spotifyIsMuted,
