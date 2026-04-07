@@ -4,6 +4,8 @@ export interface SettingsSection {
   icon:
     | "globe"
     | "display"
+    | "sound"
+    | "accessibility"
     | "wifi"
     | "bluetooth"
     | "bell"
@@ -17,6 +19,8 @@ export interface SettingsSection {
 export const SETTINGS_SECTIONS: SettingsSection[] = [
   { id: "general", name: "General", icon: "globe" },
   { id: "appearance", name: "Appearance", icon: "display" },
+  { id: "sound", name: "Sound", icon: "sound" },
+  { id: "accessibility", name: "Accessibility", icon: "accessibility" },
   { id: "wifi", name: "Wi-Fi", icon: "wifi" },
   { id: "bluetooth", name: "Bluetooth", icon: "bluetooth" },
   { id: "notifications", name: "Notifications", icon: "bell" },
