@@ -3,14 +3,17 @@
 import type React from "react";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import Image from "next/image";
 import { Moon, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useUISound } from "@/hooks/useUISounds";
 import { useSystemStore } from "@/store/useSystemStore";
 import { useTheme } from "next-themes";
 
 export default function LoginScreen() {
   const login = useSystemStore((s) => s.login);
+  const { playStartup, playLogin } = useUISound();
   const { resolvedTheme, setTheme } = useTheme();
   const [hasMounted, setHasMounted] = useState(false);
   const isDarkMode = hasMounted && resolvedTheme === "dark";
@@ -30,6 +33,10 @@ export default function LoginScreen() {
 
     return () => window.clearTimeout(timeoutId);
   }, []);
+
+  useEffect(() => {
+    playStartup();
+  }, [playStartup]);
 
   // Set the time once on mount. Avoid a ticking clock before interaction,
   // otherwise LCP can keep moving forward due to repeated repaints.
@@ -89,6 +96,7 @@ export default function LoginScreen() {
     if (isSubmitting) return;
 
     if (password.length > 0) {
+      playLogin();
       setIsSubmitting(true);
       window.setTimeout(() => {
         login();
@@ -145,19 +153,16 @@ export default function LoginScreen() {
             : "opacity-0 translate-y-2 pointer-events-none"
         }`}
       >
-        <div className="w-24 h-24 rounded-full bg-slate-800 flex items-center justify-center mb-4">
-          <span className="text-white text-5xl font-bold">D</span>
-        </div>
-        {/* <div className="w-24 h-24 rounded-full overflow-hidden bg-gray-300 flex items-center justify-center mb-4">
+        <div className="w-24 h-24 rounded-full overflow-hidden bg-gray-300 flex items-center justify-center mb-4">
           <Image
-            src="/letter-d.png"
+            src="/letter-m.png"
             alt="User avatar"
             width={96}
             height={96}
             className="object-cover w-full h-full"
           />
-        </div> */}
-        <h2 className="text-white text-2xl font-medium mb-6">Daniel</h2>
+        </div>
+        <h2 className="text-white text-2xl font-medium mb-6">Maen</h2>
 
         <form onSubmit={handleSubmit} className="flex flex-col items-center">
           <Input
@@ -183,6 +188,10 @@ export default function LoginScreen() {
             variant="outline"
             disabled={isSubmitting || !isUnlocked}
             className="mt-2 bg-white/20 backdrop-blur-md border-0 text-white hover:bg-white/30"
+            onClick={() => {
+              if (!isUnlocked || isSubmitting || password.length === 0) return;
+              playLogin();
+            }}
           >
             Login
           </Button>
