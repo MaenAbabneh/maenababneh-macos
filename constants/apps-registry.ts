@@ -50,6 +50,19 @@ export const APP_REGISTRY: AppRegistryItem[] = [
     icon: "/weather.png",
     component: "Weather",
   },
+  {
+    id: "website",
+    title: "Websites",
+    icon: "/project.png",
+    component: "Website",
+  },
+  {
+    id: "settings",
+    title: "System Settings",
+    icon: "/apple-settings.svg",
+    component: "Settings",
+    isSystem: true,
+  },
 ];
 
 const DOCK_APP_IDS = [
