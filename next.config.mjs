@@ -11,6 +11,22 @@ try {
 const nextConfig = {
   reactCompiler: true,
   cacheComponents: true,
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "images.unsplash.com",
+        port: "",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "res.cloudinary.com",
+        port: "",
+        pathname: "/**",
+      },
+    ],
+  },
   experimental: {
     turbopackFileSystemCacheForDev: true,
     optimizePackageImports: ["lucide-react", "gsap"],
