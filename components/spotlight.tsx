@@ -13,6 +13,7 @@ import {
   APP_WINDOW_POSITION_RANGE,
 } from "@/constants/window-config";
 import { useDesktopStore } from "@/store/useDesktopStore";
+import { useSettingsStore } from "@/store/useSettingsStore";
 
 const hashString = (input: string) => {
   let hash = 0;
@@ -40,6 +41,7 @@ const getWindowPosition = (seed: string) => {
 export default function Spotlight() {
   const openApp = useDesktopStore((s) => s.openApp);
   const setSpotlightOpen = useDesktopStore((s) => s.setSpotlightOpen);
+  const reduceMotion = useSettingsStore((s) => s.reduceMotion);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -80,7 +82,8 @@ export default function Spotlight() {
     inputRef.current?.focus();
 
     prefersReducedMotionRef.current =
-      window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ?? false;
+      (window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ??
+        false) || reduceMotion;
 
     // Handle escape key to close
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -102,7 +105,13 @@ export default function Spotlight() {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [filteredApps, selectedIndex, handleAppClick, setSpotlightOpen]);
+  }, [
+    filteredApps,
+    selectedIndex,
+    handleAppClick,
+    reduceMotion,
+    setSpotlightOpen,
+  ]);
 
   useGSAP(
     () => {
