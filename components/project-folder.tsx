@@ -1,103 +1,145 @@
 "use client";
 
 import Image from "next/image";
-import { Github, Star } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import gsap from "gsap";
+import { Draggable } from "gsap/Draggable";
+import { formatDistanceToNow } from "date-fns";
+import { ExternalLink, Github, Link2, RefreshCw, Star } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type React from "react";
 import type { DesktopPosition, GitHubProjectSummary } from "@/types";
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuLabel,
+  ContextMenuSeparator,
+  ContextMenuTrigger,
+} from "@/components/ui/context-menu";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface ProjectFolderProps {
   project: GitHubProjectSummary;
   position: DesktopPosition;
   isDarkMode?: boolean;
   isActive?: boolean;
+  onSelect: () => void;
   onOpen: () => void;
+  onRefreshMetadata?: () => void;
   onPositionChange: (position: DesktopPosition) => void;
 }
-
-const DRAG_THRESHOLD = 4;
 
 export default function ProjectFolder({
   project,
   position,
   isDarkMode = true,
   isActive = false,
+  onSelect,
   onOpen,
+  onRefreshMetadata,
   onPositionChange,
 }: ProjectFolderProps) {
   const [isDragging, setIsDragging] = useState(false);
+  const [coverStatus, setCoverStatus] = useState<
+    "idle" | "loading" | "loaded" | "error"
+  >(project.coverImageUrl ? "loading" : "idle");
+  const [copyState, setCopyState] = useState<"idle" | "copied" | "failed">(
+    "idle",
+  );
+
+  const rootRef = useRef<HTMLButtonElement>(null);
+  const draggingRef = useRef(false);
   const suppressClickRef = useRef(false);
-  const dragStateRef = useRef<{
-    pointerId: number;
-    startX: number;
-    startY: number;
-    originX: number;
-    originY: number;
-    dragging: boolean;
-  } | null>(null);
+  const handlersRef = useRef({ onPositionChange, onSelect });
+
+  const updatedAgo = useMemo(() => {
+    const updatedAtDate = new Date(project.updatedAt);
+    if (Number.isNaN(updatedAtDate.getTime())) {
+      return "Unknown update time";
+    }
+    return `${formatDistanceToNow(updatedAtDate)} ago`;
+  }, [project.updatedAt]);
 
   useEffect(() => {
-    const handlePointerMove = (event: PointerEvent) => {
-      const state = dragStateRef.current;
-      if (!state || state.pointerId !== event.pointerId) return;
+    handlersRef.current = { onPositionChange, onSelect };
+  }, [onPositionChange, onSelect]);
 
-      const deltaX = event.clientX - state.startX;
-      const deltaY = event.clientY - state.startY;
+  useEffect(() => {
+    setCoverStatus(project.coverImageUrl ? "loading" : "idle");
+  }, [project.coverImageUrl]);
 
-      if (!state.dragging) {
-        if (Math.hypot(deltaX, deltaY) < DRAG_THRESHOLD) return;
-        state.dragging = true;
-        setIsDragging(true);
-      }
+  useEffect(() => {
+    gsap.registerPlugin(Draggable);
 
-      event.preventDefault();
-      onPositionChange({
-        x: state.originX + deltaX,
-        y: state.originY + deltaY,
-      });
-    };
+    const element = rootRef.current;
+    if (!element) return;
 
-    const handlePointerUp = (event: PointerEvent) => {
-      const state = dragStateRef.current;
-      if (!state || state.pointerId !== event.pointerId) return;
-
-      if (state.dragging) {
+    const [draggable] = Draggable.create(element, {
+      type: "x,y",
+      dragClickables: true,
+      onPress() {
+        handlersRef.current.onSelect();
+        suppressClickRef.current = false;
+      },
+      onDragStart() {
+        draggingRef.current = true;
         suppressClickRef.current = true;
-      }
-
-      dragStateRef.current = null;
-      setIsDragging(false);
-    };
-
-    window.addEventListener("pointermove", handlePointerMove, {
-      passive: false,
+        setIsDragging(true);
+      },
+      onDrag() {
+        handlersRef.current.onPositionChange({
+          x: this.x,
+          y: this.y,
+        });
+      },
+      onDragEnd() {
+        draggingRef.current = false;
+        setIsDragging(false);
+        handlersRef.current.onPositionChange({
+          x: this.x,
+          y: this.y,
+        });
+      },
+      onRelease() {
+        if (!draggingRef.current) {
+          setIsDragging(false);
+        }
+      },
     });
-    window.addEventListener("pointerup", handlePointerUp);
-    window.addEventListener("pointercancel", handlePointerUp);
 
     return () => {
-      window.removeEventListener("pointermove", handlePointerMove);
-      window.removeEventListener("pointerup", handlePointerUp);
-      window.removeEventListener("pointercancel", handlePointerUp);
+      draggable.kill();
     };
-  }, [onOpen, onPositionChange]);
+  }, []);
 
-  const handlePointerDown = (event: React.PointerEvent<HTMLButtonElement>) => {
-    if (event.button !== 0) return;
+  useEffect(() => {
+    const element = rootRef.current;
+    if (!element || draggingRef.current) return;
 
-    event.preventDefault();
-    suppressClickRef.current = false;
-    dragStateRef.current = {
-      pointerId: event.pointerId,
-      startX: event.clientX,
-      startY: event.clientY,
-      originX: position.x,
-      originY: position.y,
-      dragging: false,
-    };
+    gsap.set(element, {
+      x: position.x,
+      y: position.y,
+      force3D: true,
+    });
+  }, [position.x, position.y]);
+
+  const handleSingleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+    if (suppressClickRef.current) {
+      event.preventDefault();
+      event.stopPropagation();
+      suppressClickRef.current = false;
+      return;
+    }
+
+    onSelect();
   };
 
-  const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+  const handleDoubleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     if (suppressClickRef.current) {
       event.preventDefault();
       event.stopPropagation();
@@ -108,65 +150,169 @@ export default function ProjectFolder({
     onOpen();
   };
 
+  const handleOpenInGitHub = () => {
+    window.open(project.url, "_blank", "noopener,noreferrer");
+  };
+
+  const handleCopyUrl = async () => {
+    try {
+      await navigator.clipboard.writeText(project.url);
+      setCopyState("copied");
+    } catch {
+      setCopyState("failed");
+    }
+
+    window.setTimeout(() => {
+      setCopyState("idle");
+    }, 1200);
+  };
+
   return (
-    <button
-      type="button"
-      className={`absolute select-none touch-none text-center ${isDragging ? "cursor-grabbing" : "cursor-grab"}`}
-      style={{
-        transform: `translate3d(${position.x}px, ${position.y}px, 0)`,
-        zIndex: isDragging ? 40 : isActive ? 4 : 2,
-      }}
-      onPointerDown={handlePointerDown}
-      onClick={handleClick}
-    >
-      <div className="w-28 sm:w-32">
-        <div
-          className={`relative mx-auto h-20 w-20 transition-transform duration-150 sm:h-24 sm:w-24 ${isActive ? "scale-105" : "scale-100"}`}
+    <ContextMenu>
+      <TooltipProvider delayDuration={250}>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <ContextMenuTrigger asChild>
+              <button
+                ref={rootRef}
+                type="button"
+                className={`absolute select-none touch-none text-center ${
+                  isDragging ? "cursor-grabbing" : "cursor-grab"
+                }`}
+                style={{
+                  zIndex: isDragging ? 40 : isActive ? 4 : 2,
+                }}
+                onClick={handleSingleClick}
+                onDoubleClick={handleDoubleClick}
+              >
+                <div className="w-24 sm:w-28 md:w-32">
+                  <div
+                    className={`relative mx-auto h-16 w-16 transition-transform duration-150 sm:h-20 sm:w-20 md:h-24 md:w-24 ${
+                      isActive ? "scale-105" : "scale-100"
+                    }`}
+                  >
+                    <Image
+                      src="/macos-folderl.svg"
+                      alt="Project folder"
+                      fill
+                      sizes="96px"
+                      className="object-contain drop-shadow-[0_8px_16px_rgba(0,0,0,0.32)]"
+                      priority={false}
+                    />
+
+                    {project.coverImageUrl ? (
+                      <div className="absolute inset-x-2 top-5 h-7 overflow-hidden rounded-md sm:inset-x-3 sm:top-6 sm:h-8 md:inset-x-4 md:top-7 md:h-9">
+                        {coverStatus !== "error" ? (
+                          <Image
+                            src={project.coverImageUrl}
+                            alt={project.name}
+                            fill
+                            sizes="64px"
+                            unoptimized
+                            className={`object-cover transition-opacity duration-300 ${
+                              coverStatus === "loaded"
+                                ? "opacity-80"
+                                : "opacity-0"
+                            }`}
+                            onLoad={() => setCoverStatus("loaded")}
+                            onError={() => setCoverStatus("error")}
+                          />
+                        ) : null}
+
+                        {coverStatus === "loading" ? (
+                          <div className="absolute inset-0 animate-pulse bg-white/30" />
+                        ) : null}
+
+                        {coverStatus === "error" ? (
+                          <div className="absolute inset-0 bg-gradient-to-br from-slate-900/90 via-slate-700/80 to-blue-500/80" />
+                        ) : null}
+                      </div>
+                    ) : (
+                      <div className="absolute inset-x-2 top-5 h-7 overflow-hidden rounded-md bg-gradient-to-br from-slate-900/80 via-slate-700/80 to-blue-500/80 sm:inset-x-3 sm:top-6 sm:h-8 md:inset-x-4 md:top-7 md:h-9" />
+                    )}
+                  </div>
+
+                  <div className="mt-1.5 space-y-1 px-0.5 sm:mt-2 sm:px-1">
+                    <p
+                      className={`truncate rounded-md px-1.5 py-1 text-[11px] font-medium leading-tight text-white sm:px-2 sm:text-xs ${
+                        isActive ? "bg-blue-500/75" : "bg-black/35"
+                      }`}
+                    >
+                      {project.name}
+                    </p>
+
+                    <p
+                      className={`mx-auto flex w-fit items-center gap-1 rounded-full px-1.5 py-0.5 text-[10px] sm:px-2 ${
+                        isDarkMode
+                          ? "bg-black/35 text-white/85"
+                          : "bg-white/80 text-gray-700"
+                      }`}
+                    >
+                      <Github className="h-3 w-3" />
+                      <Star className="h-3 w-3" />
+                      {project.stargazerCount}
+                    </p>
+                  </div>
+                </div>
+              </button>
+            </ContextMenuTrigger>
+          </TooltipTrigger>
+
+          <TooltipContent
+            side="top"
+            align="center"
+            className="max-w-[14rem] space-y-1 border-white/20 bg-black/85 text-white shadow-xl sm:max-w-xs"
+          >
+            <p className="font-semibold leading-tight">
+              {project.nameWithOwner}
+            </p>
+            <p className="line-clamp-2 text-xs text-white/80">
+              {project.description ?? "No description available"}
+            </p>
+            <p className="text-[11px] text-white/70">
+              Language: {project.primaryLanguage?.name ?? "Unknown"}
+            </p>
+            <p className="text-[11px] text-white/70">Updated: {updatedAgo}</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+
+      <ContextMenuContent className="w-52 sm:w-56">
+        <ContextMenuLabel className="text-xs text-muted-foreground">
+          {project.nameWithOwner}
+        </ContextMenuLabel>
+        <ContextMenuSeparator />
+        <ContextMenuItem onClick={onOpen}>
+          <ExternalLink className="mr-2 h-4 w-4" />
+          Open
+        </ContextMenuItem>
+        <ContextMenuItem onClick={handleOpenInGitHub}>
+          <Github className="mr-2 h-4 w-4" />
+          Open in GitHub
+        </ContextMenuItem>
+        <ContextMenuItem onClick={handleCopyUrl}>
+          <Link2 className="mr-2 h-4 w-4" />
+          {copyState === "copied"
+            ? "Copied URL"
+            : copyState === "failed"
+              ? "Copy failed"
+              : "Copy URL"}
+        </ContextMenuItem>
+        <ContextMenuItem disabled>
+          <Star className="mr-2 h-4 w-4" />
+          Star Count: {project.stargazerCount}
+        </ContextMenuItem>
+        <ContextMenuSeparator />
+        <ContextMenuItem
+          onClick={() => {
+            onRefreshMetadata?.();
+          }}
+          disabled={!onRefreshMetadata}
         >
-          <Image
-            src="/macos-folderl.svg"
-            alt="Project folder"
-            fill
-            sizes="96px"
-            className="object-contain drop-shadow-[0_8px_16px_rgba(0,0,0,0.32)]"
-            priority={false}
-          />
-
-          {project.coverImageUrl ? (
-            <div className="absolute inset-x-3 top-6 h-8 overflow-hidden rounded-md sm:inset-x-4 sm:top-7 sm:h-9">
-              <Image
-                src={project.coverImageUrl}
-                alt={project.name}
-                fill
-                sizes="64px"
-                className="object-cover opacity-80"
-              />
-            </div>
-          ) : null}
-        </div>
-
-        <div className="mt-2 space-y-1 px-1">
-          <p
-            className={`truncate rounded-md px-2 py-1 text-xs font-medium leading-tight text-white ${
-              isActive ? "bg-blue-500/75" : "bg-black/35"
-            }`}
-          >
-            {project.name}
-          </p>
-
-          <p
-            className={`mx-auto flex w-fit items-center gap-1 rounded-full px-2 py-0.5 text-[10px] ${
-              isDarkMode
-                ? "bg-black/35 text-white/85"
-                : "bg-white/80 text-gray-700"
-            }`}
-          >
-            <Github className="h-3 w-3" />
-            <Star className="h-3 w-3" />
-            {project.stargazerCount}
-          </p>
-        </div>
-      </div>
-    </button>
+          <RefreshCw className="mr-2 h-4 w-4" />
+          Refresh metadata
+        </ContextMenuItem>
+      </ContextMenuContent>
+    </ContextMenu>
   );
 }
