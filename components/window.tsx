@@ -862,7 +862,7 @@ export default function Window({
         top: `${position.y}px`,
         width: `${size.width}px`,
         height: `${size.height}px`,
-        zIndex: isAnimating ? 60 : isActive ? 10 : 0,
+        zIndex: isAnimating ? 80 : isActive ? 30 : 20,
         pointerEvents: isMinimized || isAnimating ? "none" : "auto",
       }}
       onMouseDown={() => {
