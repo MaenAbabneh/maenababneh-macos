@@ -8,7 +8,7 @@ import { X, Minus, ArrowRightIcon as ArrowsMaximize } from "lucide-react";
 import gsap from "gsap";
 import Flip from "gsap/Flip";
 import { useGSAP } from "@gsap/react";
-import type { AppWindow } from "@/types";
+import type { AppWindow, GitHubProjectSummary } from "@/types";
 import { WINDOW_LAYOUT, WINDOW_MIN_SIZE } from "@/constants/window-config";
 import { useDesktopStore } from "@/store/useDesktopStore";
 import { useSettingsStore } from "@/store/useSettingsStore";
@@ -63,9 +63,14 @@ const Settings = dynamic(() => import("@/components/apps/settings"), {
 
 gsap.registerPlugin(Flip);
 
+type AppWindowContentProps = {
+  isDarkMode?: boolean;
+  project?: GitHubProjectSummary | null;
+};
+
 const componentMap: Record<
   string,
-  React.ComponentType<{ isDarkMode?: boolean }>
+  React.ComponentType<AppWindowContentProps>
 > = {
   Notes,
   GitHub,
@@ -914,7 +919,10 @@ export default function Window({
         {/* Window content */}
         <div className={`${contentBgClass} h-[calc(100%-2rem)] overflow-auto`}>
           {AppComponent ? (
-            <AppComponent isDarkMode={isDarkMode} />
+            <AppComponent
+              isDarkMode={isDarkMode}
+              project={appWindow.data ?? null}
+            />
           ) : (
             <div className="p-4">Content not available</div>
           )}
