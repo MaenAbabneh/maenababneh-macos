@@ -3,6 +3,7 @@
 import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
 import { ThemeProvider } from "@/components/theme-provider";
+import { Toaster } from "@/components/ui/toaster";
 import { STORAGE_KEYS } from "@/constants/storage-keys";
 import { useTheme } from "next-themes";
 
@@ -66,6 +67,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
       <ThemeStorageMigration />
       {children}
+      <Toaster />
       <DeferredAnalytics />
     </ThemeProvider>
   );
