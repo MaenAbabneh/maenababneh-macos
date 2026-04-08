@@ -13,11 +13,58 @@ import Launchpad from "@/components/launchpad";
 import ControlCenter from "@/components/control-center";
 import Spotlight from "@/components/spotlight";
 import SystemNotifications from "@/components/system-notifications";
+import ProjectFolder from "@/components/project-folder";
+import { PERSONAL_WEBSITES } from "@/constants/media-links";
 import { useDesktopStore } from "@/store/useDesktopStore";
 import { useSettingsStore } from "@/store/useSettingsStore";
 import { useSystemStore } from "@/store/useSystemStore";
 import { useUISound } from "@/hooks/useUISounds";
+import { useIsDarkMode } from "@/hooks/use-is-dark-mode";
 import { UI_MOBILE_BREAKPOINT } from "@/constants/ui-config";
+import type { DesktopPosition, GitHubProjectSummary } from "@/types";
+
+type ProjectsApiResponse = {
+  projects: GitHubProjectSummary[];
+  source: "github" | "fallback" | "error";
+  message?: string;
+};
+
+const getInitialProjectPosition = (index: number) => {
+  const columns =
+    typeof window === "undefined"
+      ? 4
+      : window.innerWidth < 1100
+        ? 3
+        : window.innerWidth < 1500
+          ? 4
+          : 5;
+  const column = index % columns;
+  const row = Math.floor(index / columns);
+
+  return {
+    x: 56 + column * 160,
+    y: 92 + row * 138,
+  };
+};
+
+const fallbackProjects = (): GitHubProjectSummary[] =>
+  PERSONAL_WEBSITES.map((site, index) => ({
+    id: `fallback-${index}-${site.title.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`,
+    name: site.title,
+    nameWithOwner: site.githubUrl.replace("https://github.com/", ""),
+    description: site.description,
+    url: site.githubUrl,
+    homepageUrl: site.demoUrl,
+    primaryLanguage: {
+      name: "Project",
+      color: "#facc15",
+    },
+    stargazerCount: 0,
+    updatedAt: new Date().toISOString(),
+    readmePreview: site.description,
+    coverImageUrl: site.image,
+    source: "fallback",
+  }));
 
 export default function Desktop() {
   const [time, setTime] = useState(new Date());
@@ -40,12 +87,22 @@ export default function Desktop() {
   const desktopBackgroundClick = useDesktopStore(
     (s) => s.desktopBackgroundClick,
   );
+  const openApp = useDesktopStore((s) => s.openApp);
+  const projectFolderPositions = useDesktopStore(
+    (s) => s.projectFolderPositions,
+  );
+  const setProjectFolderPosition = useDesktopStore(
+    (s) => s.setProjectFolderPosition,
+  );
 
   const screenBrightness = useSettingsStore((s) => s.screenBrightness);
   const reduceMotion = useSettingsStore((s) => s.reduceMotion);
+  const { isDarkMode } = useIsDarkMode();
   const rootRef = useRef<HTMLDivElement>(null);
   const desktopRef = useRef<HTMLDivElement>(null);
   const prefersReducedMotionRef = useRef(false);
+  const [projects, setProjects] = useState<GitHubProjectSummary[]>([]);
+  const [projectsLoaded, setProjectsLoaded] = useState(false);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -63,6 +120,49 @@ export default function Desktop() {
         false) ||
       reduceMotion;
   }, [reduceMotion]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadProjects = async () => {
+      try {
+        const response = await fetch("/api/github/projects", {
+          cache: "no-store",
+        });
+        const data = (await response.json()) as ProjectsApiResponse;
+
+        if (!cancelled) {
+          if (response.ok && data.projects.length) {
+            setProjects(data.projects);
+          } else {
+            setProjects(fallbackProjects());
+          }
+          setProjectsLoaded(true);
+        }
+      } catch {
+        if (!cancelled) {
+          setProjects(fallbackProjects());
+          setProjectsLoaded(true);
+        }
+      }
+    };
+
+    loadProjects();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!projects.length) return;
+
+    projects.forEach((project, index) => {
+      if (!projectFolderPositions[project.id]) {
+        setProjectFolderPosition(project.id, getInitialProjectPosition(index));
+      }
+    });
+  }, [projectFolderPositions, projects, setProjectFolderPosition]);
 
   useGSAP(
     () => {
@@ -396,6 +496,26 @@ export default function Desktop() {
     }
   };
 
+  const handleOpenProject = (project: GitHubProjectSummary) => {
+    const position =
+      projectFolderPositions[project.id] ??
+      getInitialProjectPosition(
+        projects.findIndex((item) => item.id === project.id),
+      );
+
+    openApp({
+      id: project.id,
+      title: project.name,
+      component: "Projects",
+      position,
+      size: {
+        width: 920,
+        height: 680,
+      },
+      data: project,
+    });
+  };
+
   return (
     <div ref={rootRef} data-screen="desktop" className="relative">
       <div
@@ -406,6 +526,31 @@ export default function Desktop() {
         <Wallpaper />
 
         <Menubar time={time} />
+
+        {/* Project folders */}
+        {projectsLoaded ? (
+          <div className="absolute inset-0 pt-6 pb-16">
+            {projects.map((project, index) => {
+              const position =
+                projectFolderPositions[project.id] ??
+                getInitialProjectPosition(index);
+
+              return (
+                <ProjectFolder
+                  key={project.id}
+                  project={project}
+                  position={position}
+                  isDarkMode={isDarkMode}
+                  isActive={activeWindowId === project.id}
+                  onOpen={() => handleOpenProject(project)}
+                  onPositionChange={(nextPosition: DesktopPosition) =>
+                    setProjectFolderPosition(project.id, nextPosition)
+                  }
+                />
+              );
+            })}
+          </div>
+        ) : null}
 
         {/* Windows */}
         <div className="absolute inset-0 pt-6 pb-16">

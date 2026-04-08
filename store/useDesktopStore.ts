@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
-import type { AppWindow } from "@/types";
+import type { AppWindow, DesktopPosition } from "@/types";
 import { noopStorage } from "@/store/noop-storage";
 import { STORAGE_KEYS } from "@/constants/storage-keys";
 
@@ -14,6 +14,7 @@ type DesktopState = {
   restoringWindowIds: string[];
   openingWindowIds: string[];
   closingWindowIds: string[];
+  projectFolderPositions: Record<string, DesktopPosition>;
 };
 
 type DesktopActions = {
@@ -39,6 +40,7 @@ type DesktopActions = {
 
   setWindowPosition: (id: string, position: AppWindow["position"]) => void;
   setWindowSize: (id: string, size: AppWindow["size"]) => void;
+  setProjectFolderPosition: (id: string, position: DesktopPosition) => void;
 };
 
 export type DesktopStore = DesktopState & DesktopActions;
@@ -55,6 +57,7 @@ export const useDesktopStore = create<DesktopStore>()(
       restoringWindowIds: [],
       openingWindowIds: [],
       closingWindowIds: [],
+      projectFolderPositions: {},
 
       openApp: (app) => {
         const {
@@ -244,6 +247,22 @@ export const useDesktopStore = create<DesktopStore>()(
         const next = openWindows.map((w) => (w.id === id ? { ...w, size } : w));
         set({ openWindows: next });
       },
+
+      setProjectFolderPosition: (id, position) => {
+        const { projectFolderPositions } = get();
+        const current = projectFolderPositions[id];
+
+        if (current && current.x === position.x && current.y === position.y) {
+          return;
+        }
+
+        set({
+          projectFolderPositions: {
+            ...projectFolderPositions,
+            [id]: position,
+          },
+        });
+      },
     }),
     {
       name: STORAGE_KEYS.desktopState,
@@ -256,6 +275,7 @@ export const useDesktopStore = create<DesktopStore>()(
         showLaunchpad: state.showLaunchpad,
         showControlCenter: state.showControlCenter,
         showSpotlight: state.showSpotlight,
+        projectFolderPositions: state.projectFolderPositions,
       }),
     },
   ),
