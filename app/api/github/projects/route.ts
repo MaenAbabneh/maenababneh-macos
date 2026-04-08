@@ -10,7 +10,8 @@ export async function GET() {
       },
     });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Failed to load GitHub projects";
+    const message =
+      error instanceof Error ? error.message : "Failed to load GitHub projects";
 
     return NextResponse.json(
       {
