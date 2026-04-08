@@ -6,7 +6,7 @@ interface WebsiteProps {
   isDarkMode?: boolean;
 }
 
-export default function Website({ isDarkMode = true }: WebsiteProps) {
+export default function Projects({ isDarkMode = true }: WebsiteProps) {
   const textColor = isDarkMode ? "text-white" : "text-gray-800";
   const mutedTextColor = isDarkMode ? "text-gray-400" : "text-gray-600";
   const borderColor = isDarkMode ? "border-gray-700" : "border-gray-200";
