@@ -112,7 +112,7 @@ const normalizeRepository = (
 ): GitHubProjectSummary => {
   const readmeText = node.readme?.text?.trim() ?? "";
   const imageFromReadme = extractFirstImageUrl(readmeText);
-  const readmePreview = readmeText ? clampText(readmeText, 900) : null;
+  const readmePreview = readmeText || null;
 
   return {
     id: node.id,
