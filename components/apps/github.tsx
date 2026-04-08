@@ -19,7 +19,7 @@ export default function GitHub({ isDarkMode = true }: GitHubProps) {
       hasOpenedRef.current = true;
 
       // Open GitHub profile in new tab
-      window.open("https://github.com/daprior", "_blank");
+      window.open("https://github.com/maenababneh", "_blank");
     }
   }, []);
 
