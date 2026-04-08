@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import ReactMarkdown from "react-markdown";
+import rehypeRaw from "rehype-raw";
 import remarkGfm from "remark-gfm";
 import type { GitHubProjectSummary } from "@/types";
 
@@ -33,6 +34,40 @@ const formatUpdatedAt = (value: string) =>
     day: "numeric",
     year: "numeric",
   }).format(new Date(value));
+
+const normalizeAssetUrl = (value: unknown) => {
+  if (typeof value !== "string") return undefined;
+  if (!value) return undefined;
+
+  if (value.startsWith("public/")) {
+    return `/${value.slice("public/".length)}`;
+  }
+
+  return value;
+};
+
+const parseDimension = (value: unknown, fallback: number) => {
+  if (typeof value === "number" && value > 0) {
+    return value;
+  }
+
+  if (typeof value === "string") {
+    const parsed = Number.parseInt(value, 10);
+    if (Number.isFinite(parsed) && parsed > 0) {
+      return parsed;
+    }
+  }
+
+  return fallback;
+};
+
+const isBadgeImage = (src: string) => {
+  return (
+    src.includes("img.shields.io") ||
+    src.includes("/badge/") ||
+    src.includes("badgen.net")
+  );
+};
 
 const ProjectCard = ({
   project,
@@ -57,6 +92,7 @@ const ProjectCard = ({
             alt={project.name}
             fill
             sizes="(min-width: 1024px) 33vw, 100vw"
+            unoptimized
             className="object-cover"
           />
         ) : (
@@ -136,6 +172,77 @@ export default function Projects({
 
   const markdownComponents = useMemo(
     () => ({
+      img: ({
+        src,
+        alt,
+        width,
+        height,
+      }: React.ComponentPropsWithoutRef<"img">) => {
+        const normalizedSrc = normalizeAssetUrl(src);
+        const badge = normalizedSrc ? isBadgeImage(normalizedSrc) : false;
+        const imageWidth = parseDimension(width, badge ? 140 : 1280);
+        const imageHeight = parseDimension(height, badge ? 28 : 720);
+
+        return normalizedSrc ? (
+          <Image
+            src={normalizedSrc}
+            alt={alt ?? "Markdown image"}
+            width={imageWidth}
+            height={imageHeight}
+            sizes="(min-width: 1024px) 900px, 100vw"
+            unoptimized
+            className={
+              badge
+                ? "my-1 mr-1 inline-block h-auto w-auto max-w-full align-middle"
+                : "my-4 h-auto max-w-full rounded-2xl border border-white/10 shadow-lg"
+            }
+          />
+        ) : null;
+      },
+      video: ({
+        src,
+        controls,
+        children,
+        poster,
+        ...props
+      }: React.ComponentPropsWithoutRef<"video">) => {
+        const normalizedSrc = normalizeAssetUrl(src);
+
+        return normalizedSrc ? (
+          <video
+            src={normalizedSrc}
+            controls={controls ?? true}
+            poster={normalizeAssetUrl(poster)}
+            className="my-4 w-full rounded-2xl border border-white/10 bg-black shadow-lg"
+            {...props}
+          >
+            {children}
+          </video>
+        ) : null;
+      },
+      source: ({ src, ...props }: React.ComponentPropsWithoutRef<"source">) => {
+        const normalizedSrc = normalizeAssetUrl(src);
+
+        return normalizedSrc ? <source src={normalizedSrc} {...props} /> : null;
+      },
+      iframe: ({
+        src,
+        title,
+        ...props
+      }: React.ComponentPropsWithoutRef<"iframe">) => {
+        const normalizedSrc = normalizeAssetUrl(src);
+
+        return normalizedSrc ? (
+          <iframe
+            src={normalizedSrc}
+            title={title ?? "Embedded content"}
+            className="my-4 aspect-video w-full rounded-2xl border border-white/10 bg-black shadow-lg"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            allowFullScreen
+            {...props}
+          />
+        ) : null;
+      },
       h1: ({ children }: { children?: React.ReactNode }) => (
         <h1 className="mb-4 text-2xl font-bold tracking-tight">{children}</h1>
       ),
@@ -273,6 +380,7 @@ export default function Projects({
                   alt={project.name}
                   fill
                   sizes="(min-width: 1024px) 100vw, 100vw"
+                  unoptimized
                   className="object-cover"
                 />
               ) : (
@@ -356,13 +464,14 @@ export default function Projects({
                 >
                   <div className="mb-4 flex items-center gap-2 text-sm font-medium">
                     <FileText className="h-4 w-4" />
-                    README Preview as Markdown
+                    README File
                   </div>
                   <div
                     className={`max-h-[32rem] overflow-auto rounded-2xl border p-4 text-sm leading-7 ${isDarkMode ? "border-white/10 bg-black/20 text-gray-200" : "border-gray-200 bg-white text-gray-800"}`}
                   >
                     {project.readmePreview ? (
                       <ReactMarkdown
+                        rehypePlugins={[rehypeRaw]}
                         remarkPlugins={[remarkGfm]}
                         components={markdownComponents}
                       >
