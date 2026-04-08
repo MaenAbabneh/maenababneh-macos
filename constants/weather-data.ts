@@ -8,6 +8,8 @@ export type WeatherCondition =
 export interface WeatherForecastDay {
   day: string;
   temp: number;
+  highTemp?: number;
+  lowTemp?: number;
   condition: WeatherCondition;
 }
 
@@ -20,6 +22,7 @@ export interface WeatherCityData {
     sunrise: string;
     sunset: string;
     feelsLike: number;
+    isDaytime?: boolean;
   };
   forecast: WeatherForecastDay[];
 }
