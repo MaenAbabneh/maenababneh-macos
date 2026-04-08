@@ -12,6 +12,7 @@ import Window from "@/components/window";
 import Launchpad from "@/components/launchpad";
 import ControlCenter from "@/components/control-center";
 import Spotlight from "@/components/spotlight";
+import SystemNotifications from "@/components/system-notifications";
 import { useDesktopStore } from "@/store/useDesktopStore";
 import { useSettingsStore } from "@/store/useSettingsStore";
 import { useSystemStore } from "@/store/useSystemStore";
@@ -426,6 +427,8 @@ export default function Desktop() {
 
         {/* Spotlight */}
         {showSpotlight && <Spotlight />}
+
+        <SystemNotifications />
 
         <Dock />
       </div>
