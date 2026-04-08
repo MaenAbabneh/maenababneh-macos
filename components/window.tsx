@@ -54,7 +54,7 @@ const Snake = dynamic(() => import("@/components/apps/snake"), {
 const Weather = dynamic(() => import("@/components/apps/weather"), {
   loading: () => <AppLoader />,
 });
-const Website = dynamic(() => import("@/components/apps/website"), {
+const Projects = dynamic(() => import("@/components/apps/project"), {
   loading: () => <AppLoader />,
 });
 const Settings = dynamic(() => import("@/components/apps/settings"), {
@@ -78,7 +78,7 @@ const componentMap: Record<
   Spotify,
   Snake,
   Weather,
-  Website,
+  Projects,
   Settings,
 };
 
@@ -162,7 +162,8 @@ export default function Window({
     if (typeof window === "undefined") return;
     prefersReducedMotionRef.current =
       (window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ??
-        false) || reduceMotion;
+        false) ||
+      reduceMotion;
   }, [reduceMotion]);
 
   useGSAP(
