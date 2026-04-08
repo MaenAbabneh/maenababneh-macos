@@ -51,10 +51,10 @@ export const APP_REGISTRY: AppRegistryItem[] = [
     component: "Weather",
   },
   {
-    id: "website",
-    title: "Websites",
-    icon: "/project.png",
-    component: "Website",
+    id: "projects",
+    title: "Projects",
+    icon: "/project.svg",
+    component: "Projects",
   },
   {
     id: "settings",
