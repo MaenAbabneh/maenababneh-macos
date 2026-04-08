@@ -2,7 +2,7 @@
 
 import type React from "react";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import Dock from "@/components/dock";
@@ -103,6 +103,9 @@ export default function Desktop() {
   const prefersReducedMotionRef = useRef(false);
   const [projects, setProjects] = useState<GitHubProjectSummary[]>([]);
   const [projectsLoaded, setProjectsLoaded] = useState(false);
+  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(
+    null,
+  );
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -121,38 +124,46 @@ export default function Desktop() {
       reduceMotion;
   }, [reduceMotion]);
 
+  const fetchProjectsData = useCallback(async (): Promise<
+    GitHubProjectSummary[]
+  > => {
+    try {
+      const response = await fetch("/api/github/projects", {
+        cache: "no-store",
+      });
+      const data = (await response.json()) as ProjectsApiResponse;
+
+      if (response.ok && data.projects.length) {
+        return data.projects;
+      }
+      return fallbackProjects();
+    } catch {
+      return fallbackProjects();
+    }
+  }, []);
+
+  const loadProjects = useCallback(async () => {
+    const nextProjects = await fetchProjectsData();
+    setProjects(nextProjects);
+    setProjectsLoaded(true);
+  }, [fetchProjectsData]);
+
   useEffect(() => {
     let cancelled = false;
 
-    const loadProjects = async () => {
-      try {
-        const response = await fetch("/api/github/projects", {
-          cache: "no-store",
-        });
-        const data = (await response.json()) as ProjectsApiResponse;
-
-        if (!cancelled) {
-          if (response.ok && data.projects.length) {
-            setProjects(data.projects);
-          } else {
-            setProjects(fallbackProjects());
-          }
-          setProjectsLoaded(true);
-        }
-      } catch {
-        if (!cancelled) {
-          setProjects(fallbackProjects());
-          setProjectsLoaded(true);
-        }
-      }
+    const hydrateProjects = async () => {
+      const nextProjects = await fetchProjectsData();
+      if (cancelled) return;
+      setProjects(nextProjects);
+      setProjectsLoaded(true);
     };
 
-    loadProjects();
+    void hydrateProjects();
 
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [fetchProjectsData]);
 
   useEffect(() => {
     if (!projects.length) return;
@@ -492,11 +503,13 @@ export default function Desktop() {
       if (showControlCenter) {
         playPop();
       }
+      setSelectedProjectId(null);
       desktopBackgroundClick();
     }
   };
 
   const handleOpenProject = (project: GitHubProjectSummary) => {
+    setSelectedProjectId(project.id);
     const position =
       projectFolderPositions[project.id] ??
       getInitialProjectPosition(
@@ -529,7 +542,7 @@ export default function Desktop() {
 
         {/* Project folders */}
         {projectsLoaded ? (
-          <div className="absolute inset-0 pt-6 pb-16">
+          <div className="absolute inset-0 z-10 pt-6 pb-16">
             {projects.map((project, index) => {
               const position =
                 projectFolderPositions[project.id] ??
@@ -541,8 +554,16 @@ export default function Desktop() {
                   project={project}
                   position={position}
                   isDarkMode={isDarkMode}
-                  isActive={activeWindowId === project.id}
+                  isActive={
+                    activeWindowId === project.id ||
+                    (activeWindowId === null &&
+                      selectedProjectId === project.id)
+                  }
+                  onSelect={() => setSelectedProjectId(project.id)}
                   onOpen={() => handleOpenProject(project)}
+                  onRefreshMetadata={() => {
+                    void loadProjects();
+                  }}
                   onPositionChange={(nextPosition: DesktopPosition) =>
                     setProjectFolderPosition(project.id, nextPosition)
                   }
@@ -553,7 +574,7 @@ export default function Desktop() {
         ) : null}
 
         {/* Windows */}
-        <div className="absolute inset-0 pt-6 pb-16">
+        <div className="absolute inset-0 z-20 pt-6 pb-16">
           {openWindows.map((window) => (
             <Window
               key={window.id}
