@@ -25,18 +25,20 @@ import {
 
 interface ProjectFolderProps {
   project: GitHubProjectSummary;
-  position: DesktopPosition;
+  position?: DesktopPosition;
+  variant?: "desktop" | "mobile";
   isDarkMode?: boolean;
   isActive?: boolean;
   onSelect: () => void;
   onOpen: () => void;
   onRefreshMetadata?: () => void;
-  onPositionChange: (position: DesktopPosition) => void;
+  onPositionChange?: (position: DesktopPosition) => void;
 }
 
 export default function ProjectFolder({
   project,
   position,
+  variant = "desktop",
   isDarkMode = true,
   isActive = false,
   onSelect,
@@ -57,6 +59,9 @@ export default function ProjectFolder({
   const suppressClickRef = useRef(false);
   const handlersRef = useRef({ onPositionChange, onSelect });
 
+  const posX = position?.x;
+  const posY = position?.y;
+
   const updatedAgo = useMemo(() => {
     const updatedAtDate = new Date(project.updatedAt);
     if (Number.isNaN(updatedAtDate.getTime())) {
@@ -74,6 +79,7 @@ export default function ProjectFolder({
   }, [project.coverImageUrl]);
 
   useEffect(() => {
+    if (variant !== "desktop") return;
     gsap.registerPlugin(Draggable);
 
     const element = rootRef.current;
@@ -92,18 +98,12 @@ export default function ProjectFolder({
         setIsDragging(true);
       },
       onDrag() {
-        handlersRef.current.onPositionChange({
-          x: this.x,
-          y: this.y,
-        });
+        handlersRef.current.onPositionChange?.({ x: this.x, y: this.y });
       },
       onDragEnd() {
         draggingRef.current = false;
         setIsDragging(false);
-        handlersRef.current.onPositionChange({
-          x: this.x,
-          y: this.y,
-        });
+        handlersRef.current.onPositionChange?.({ x: this.x, y: this.y });
       },
       onRelease() {
         if (!draggingRef.current) {
@@ -115,24 +115,31 @@ export default function ProjectFolder({
     return () => {
       draggable.kill();
     };
-  }, []);
+  }, [variant]);
 
   useEffect(() => {
+    if (variant !== "desktop") return;
     const element = rootRef.current;
     if (!element || draggingRef.current) return;
+    if (typeof posX !== "number" || typeof posY !== "number") return;
 
     gsap.set(element, {
-      x: position.x,
-      y: position.y,
+      x: posX,
+      y: posY,
       force3D: true,
     });
-  }, [position.x, position.y]);
+  }, [posX, posY, variant]);
 
   const handleSingleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     if (suppressClickRef.current) {
       event.preventDefault();
       event.stopPropagation();
       suppressClickRef.current = false;
+      return;
+    }
+
+    if (variant === "mobile") {
+      onOpen();
       return;
     }
 
@@ -176,18 +183,26 @@ export default function ProjectFolder({
               <button
                 ref={rootRef}
                 type="button"
-                className={`absolute select-none touch-none text-center ${
-                  isDragging ? "cursor-grabbing" : "cursor-grab"
+                className={`${
+                  variant === "desktop" ? "absolute" : "relative"
+                } select-none text-center ${
+                  variant === "desktop"
+                    ? isDragging
+                      ? "touch-none cursor-grabbing"
+                      : "touch-none cursor-grab"
+                    : "touch-manipulation cursor-pointer"
                 }`}
                 style={{
                   zIndex: isDragging ? 40 : isActive ? 4 : 2,
                 }}
                 onClick={handleSingleClick}
-                onDoubleClick={handleDoubleClick}
+                onDoubleClick={
+                  variant === "desktop" ? handleDoubleClick : undefined
+                }
               >
-                <div className="w-24 sm:w-28 md:w-32">
+                <div className="w-28 sm:w-32">
                   <div
-                    className={`relative mx-auto h-16 w-16 transition-transform duration-150 sm:h-20 sm:w-20 md:h-24 md:w-24 ${
+                    className={`relative mx-auto h-20 w-20 transition-transform duration-150 sm:h-24 sm:w-24 ${
                       isActive ? "scale-105" : "scale-100"
                     }`}
                   >
@@ -201,14 +216,13 @@ export default function ProjectFolder({
                     />
 
                     {project.coverImageUrl ? (
-                      <div className="absolute inset-x-2 top-5 h-7 overflow-hidden rounded-md sm:inset-x-3 sm:top-6 sm:h-8 md:inset-x-4 md:top-7 md:h-9">
+                      <div className="absolute inset-x-3 top-6 h-8 overflow-hidden rounded-md sm:inset-x-4 sm:top-7 sm:h-9">
                         {coverStatus !== "error" ? (
                           <Image
                             src={project.coverImageUrl}
                             alt={project.name}
                             fill
                             sizes="64px"
-                            unoptimized
                             className={`object-cover transition-opacity duration-300 ${
                               coverStatus === "loaded"
                                 ? "opacity-80"
@@ -228,13 +242,13 @@ export default function ProjectFolder({
                         ) : null}
                       </div>
                     ) : (
-                      <div className="absolute inset-x-2 top-5 h-7 overflow-hidden rounded-md bg-gradient-to-br from-slate-900/80 via-slate-700/80 to-blue-500/80 sm:inset-x-3 sm:top-6 sm:h-8 md:inset-x-4 md:top-7 md:h-9" />
+                      <div className="absolute inset-x-3 top-6 h-8 overflow-hidden rounded-md bg-gradient-to-br from-slate-900/80 via-slate-700/80 to-blue-500/80 sm:inset-x-4 sm:top-7 sm:h-9" />
                     )}
                   </div>
 
-                  <div className="mt-1.5 space-y-1 px-0.5 sm:mt-2 sm:px-1">
+                  <div className="mt-2 space-y-1 px-1">
                     <p
-                      className={`truncate rounded-md px-1.5 py-1 text-[11px] font-medium leading-tight text-white sm:px-2 sm:text-xs ${
+                      className={`truncate rounded-md px-2 py-1 text-xs font-medium leading-tight text-white ${
                         isActive ? "bg-blue-500/75" : "bg-black/35"
                       }`}
                     >
@@ -242,7 +256,7 @@ export default function ProjectFolder({
                     </p>
 
                     <p
-                      className={`mx-auto flex w-fit items-center gap-1 rounded-full px-1.5 py-0.5 text-[10px] sm:px-2 ${
+                      className={`mx-auto flex w-fit items-center gap-1 rounded-full px-2 py-0.5 text-[10px] ${
                         isDarkMode
                           ? "bg-black/35 text-white/85"
                           : "bg-white/80 text-gray-700"
@@ -261,7 +275,7 @@ export default function ProjectFolder({
           <TooltipContent
             side="top"
             align="center"
-            className="max-w-[14rem] space-y-1 border-white/20 bg-black/85 text-white shadow-xl sm:max-w-xs"
+            className="max-w-xs space-y-1 border-white/20 bg-black/85 text-white shadow-xl"
           >
             <p className="font-semibold leading-tight">
               {project.nameWithOwner}
@@ -277,7 +291,7 @@ export default function ProjectFolder({
         </Tooltip>
       </TooltipProvider>
 
-      <ContextMenuContent className="w-52 sm:w-56">
+      <ContextMenuContent className="w-56">
         <ContextMenuLabel className="text-xs text-muted-foreground">
           {project.nameWithOwner}
         </ContextMenuLabel>
