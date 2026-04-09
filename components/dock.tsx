@@ -6,7 +6,11 @@ import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import { MoreHorizontal } from "lucide-react";
 import gsap from "gsap";
-import { DOCK_APPS, type AppRegistryItem } from "@/constants/apps-registry";
+import {
+  DOCK_APPS,
+  LAUNCHPAD_APPS,
+  type AppRegistryItem,
+} from "@/constants/apps-registry";
 import { UI_MOBILE_BREAKPOINT } from "@/constants/ui-config";
 import {
   APP_WINDOW_DEFAULT_SIZE,
@@ -70,15 +74,15 @@ export default function Dock() {
   useEffect(() => {
     if (!showMobileMenu) return;
 
-    const handleClickOutside = (event: MouseEvent) => {
+    const handleClickOutside = (event: PointerEvent) => {
       if (dockRef.current && !dockRef.current.contains(event.target as Node)) {
         setShowMobileMenu(false);
       }
     };
 
-    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("pointerdown", handleClickOutside);
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("pointerdown", handleClickOutside);
     };
   }, [showMobileMenu]);
 
@@ -174,23 +178,28 @@ export default function Dock() {
 
   // For mobile, we'll show only the first 4 apps plus a "more" button
   const visibleApps = isMobile ? DOCK_APPS.slice(0, 4) : DOCK_APPS;
-  const hiddenApps = isMobile ? DOCK_APPS.slice(4) : [];
+  const menuApps = isMobile ? LAUNCHPAD_APPS : [];
 
   return (
     <div
       ref={dockRef}
       data-role="dock"
-      className="fixed bottom-2 left-1/2 transform -translate-x-1/2 z-50"
+      className={`fixed bottom-2 z-50 ${
+        isMobile
+          ? "left-0 right-0 flex justify-center px-2"
+          : "left-1/2 transform -translate-x-1/2"
+      }`}
+      style={{ bottom: "calc(0.5rem + env(safe-area-inset-bottom))" }}
     >
       {/* Mobile expanded menu */}
       {isMobile && showMobileMenu && (
         <div
-          className={`absolute bottom-20 left-1/2 transform -translate-x-1/2 w-[280px] 
+          className={`absolute bottom-20 left-1/2 transform -translate-x-1/2 w-[min(320px,calc(100vw-1rem))] max-h-[60vh] overflow-auto 
           ${isDarkMode ? "bg-gray-800/90" : "bg-white/90"} backdrop-blur-xl 
           rounded-xl border border-white/20 shadow-lg p-4 mb-2`}
         >
           <div className="grid grid-cols-4 gap-4">
-            {hiddenApps.map((app) => (
+            {menuApps.map((app) => (
               <button
                 key={app.id}
                 className="flex flex-col items-center justify-center"
@@ -203,8 +212,11 @@ export default function Dock() {
                     alt={app.title}
                     width={48}
                     height={48}
+                    sizes="48px"
                     className="w-12 h-12 object-contain"
                     draggable={false}
+                    quality={85}
+                    loading="lazy"
                   />
                 </div>
                 <span
@@ -226,7 +238,7 @@ export default function Dock() {
         className={`relative px-3 py-2 rounded-2xl 
           ${isDarkMode ? "bg-white/10" : "bg-white/60"}
           flex items-end border border-white/20 shadow-lg
-          ${isMobile ? "h-20" : "h-16"}`}
+          ${isMobile ? "h-20 w-full max-w-[calc(100vw-1rem)] overflow-x-auto" : "h-16"}`}
         data-dock-root
         style={
           {
@@ -272,9 +284,11 @@ export default function Dock() {
                       alt={app.title}
                       width={56}
                       height={56}
+                      sizes="56px"
                       priority
                       className={`object-contain ${isMobile ? "w-14 h-14" : "w-12 h-12"}`}
                       draggable={false}
+                      quality={90}
                     />
 
                     {/* Tooltip - only on desktop */}
