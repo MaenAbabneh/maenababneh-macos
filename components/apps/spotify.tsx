@@ -236,6 +236,8 @@ export default function Spotify() {
             width={32}
             height={32}
             className="w-8 h-8 mr-3"
+            quality={85}
+            loading="eager"
           />
           <h2 className="font-semibold">Spotify</h2>
         </div>
@@ -258,6 +260,8 @@ export default function Spotify() {
             width={192}
             height={192}
             className="w-full h-full object-cover"
+            quality={85}
+            loading="eager"
           />
         </div>
 
@@ -372,6 +376,8 @@ export default function Spotify() {
                   width={40}
                   height={40}
                   className="w-full h-full object-cover"
+                  quality={75}
+                  loading="lazy"
                 />
               </div>
               <div className="flex-1">

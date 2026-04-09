@@ -35,6 +35,8 @@ export default function YouTube({ isDarkMode = true }: YouTubeProps) {
           width={64}
           height={64}
           className="mx-auto mb-4 object-contain"
+          quality={85}
+          loading="eager"
         />
         <h2 className="text-xl font-semibold mb-2">Opening YouTube...</h2>
         <p>Redirecting to your YouTube channel</p>
