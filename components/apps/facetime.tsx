@@ -136,7 +136,8 @@ export default function FaceTime({ isDarkMode = true }: FaceTimeProps) {
                   width={96}
                   height={96}
                   className="h-24 w-auto rounded object-cover"
-                  unoptimized
+                  quality={80}
+                  loading="lazy"
                 />
                 <button
                   type="button"
