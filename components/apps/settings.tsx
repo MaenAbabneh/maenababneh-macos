@@ -177,7 +177,9 @@ export default function Settings({ isDarkMode = true }: SettingsProps) {
   return (
     <div className={`flex h-full overflow-hidden ${bgColor} ${textColor}`}>
       {/* Sidebar */}
-      <div className={`w-64 shrink-0 h-full overflow-y-auto ${sidebarBg} p-2`}>
+      <div
+        className={`w-16 sm:w-64 shrink-0 h-full overflow-y-auto ${sidebarBg} p-2`}
+      >
         <div className="space-y-1">
           {SETTINGS_SECTIONS.map((section) => {
             const Icon = iconMap[section.icon];
@@ -188,7 +190,9 @@ export default function Settings({ isDarkMode = true }: SettingsProps) {
               <button
                 key={section.id}
                 type="button"
-                className={`flex w-full items-center px-3 py-2 rounded cursor-pointer transition-colors ${
+                aria-label={section.name}
+                title={section.name}
+                className={`flex w-full items-center justify-center sm:justify-start px-2 sm:px-3 py-2 rounded cursor-pointer transition-colors ${
                   isActive
                     ? isDarkMode
                       ? "bg-blue-600 text-white"
@@ -197,10 +201,10 @@ export default function Settings({ isDarkMode = true }: SettingsProps) {
                 }`}
                 onClick={() => setActiveSection(section.id)}
               >
-                <div className="mr-3">
+                <div className="mr-0 sm:mr-3">
                   <Icon className="w-5 h-5" />
                 </div>
-                <span>{section.name}</span>
+                <span className="sr-only sm:not-sr-only">{section.name}</span>
               </button>
             );
           })}
@@ -223,6 +227,8 @@ export default function Settings({ isDarkMode = true }: SettingsProps) {
                       fill
                       sizes="96px"
                       className="object-cover"
+                      quality={80}
+                      loading="lazy"
                     />
                   </div>
 
@@ -422,6 +428,8 @@ export default function Settings({ isDarkMode = true }: SettingsProps) {
                         fill
                         sizes="(max-width: 640px) 33vw, 25vw"
                         className="object-cover"
+                        quality={75}
+                        loading="lazy"
                       />
                       {wallpaperId === wallpaper.id && (
                         <div className="absolute inset-0 bg-blue-500/20 flex items-center justify-center">

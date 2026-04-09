@@ -165,6 +165,8 @@ export default function Safari({ isDarkMode = true }: SafariProps) {
                           width={32}
                           height={32}
                           className="w-8 h-8 object-contain"
+                          quality={85}
+                          loading="lazy"
                         />
                       </div>
                       <span className="text-sm text-center">{link.title}</span>
@@ -189,6 +191,8 @@ export default function Safari({ isDarkMode = true }: SafariProps) {
                           width={32}
                           height={32}
                           className="w-8 h-8 object-contain"
+                          quality={85}
+                          loading="lazy"
                         />
                       </div>
                       <span className="text-sm text-center">{site.title}</span>
@@ -199,10 +203,10 @@ export default function Safari({ isDarkMode = true }: SafariProps) {
                 <div className="mt-8 max-w-2xl mx-auto">
                   <div className={`p-6 rounded-lg ${cardBg}`}>
                     <h3 className="text-xl font-semibold mb-4">
-                      Daniel Prior - Portfolio
+                      Maen Ababenh - Portfolio
                     </h3>
                     <p className="mb-4">
-                      Welcome to my portfolio website! I&apos;m a frontend
+                      Welcome to my portfolio website! I&apos;m a creative web
                       developer specializing in creating beautiful, responsive,
                       and user-friendly web applications.
                     </p>
