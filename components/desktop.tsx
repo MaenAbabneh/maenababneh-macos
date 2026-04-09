@@ -2,7 +2,7 @@
 
 import type React from "react";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import Dock from "@/components/dock";
@@ -20,6 +20,7 @@ import { useSettingsStore } from "@/store/useSettingsStore";
 import { useSystemStore } from "@/store/useSystemStore";
 import { useUISound } from "@/hooks/useUISounds";
 import { useIsDarkMode } from "@/hooks/use-is-dark-mode";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { UI_MOBILE_BREAKPOINT } from "@/constants/ui-config";
 import type { DesktopPosition, GitHubProjectSummary } from "@/types";
 
@@ -69,6 +70,7 @@ const fallbackProjects = (): GitHubProjectSummary[] =>
 export default function Desktop() {
   const [time, setTime] = useState(new Date());
   const { playPop } = useUISound();
+  const isMobile = useIsMobile();
 
   const desktopIntroNonce = useSystemStore((s) => s.desktopIntroNonce);
   const desktopIntroLastPlayedNonce = useSystemStore(
@@ -106,6 +108,17 @@ export default function Desktop() {
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(
     null,
   );
+
+  const visibleWindows = useMemo(() => {
+    if (!isMobile) return openWindows;
+    if (!openWindows.length) return [];
+
+    const active = activeWindowId
+      ? openWindows.find((w) => w.id === activeWindowId)
+      : undefined;
+
+    return [active ?? openWindows[openWindows.length - 1]].filter(Boolean);
+  }, [activeWindowId, isMobile, openWindows]);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -533,7 +546,7 @@ export default function Desktop() {
     <div ref={rootRef} data-screen="desktop" className="relative">
       <div
         ref={desktopRef}
-        className="relative h-screen w-screen overflow-hidden"
+        className="relative h-[100dvh] w-screen overflow-hidden"
         onMouseDown={handleDesktopClick}
       >
         <Wallpaper />
@@ -542,40 +555,77 @@ export default function Desktop() {
 
         {/* Project folders */}
         {projectsLoaded ? (
-          <div className="absolute inset-0 z-10 pt-6 pb-16">
-            {projects.map((project, index) => {
-              const position =
-                projectFolderPositions[project.id] ??
-                getInitialProjectPosition(index);
+          isMobile ? (
+            <div
+              className="absolute inset-0 z-10"
+              style={{
+                paddingTop: "calc(24px + env(safe-area-inset-top) + 12px)",
+                paddingBottom: "calc(80px + env(safe-area-inset-bottom))",
+              }}
+            >
+              <div className="h-full w-full overflow-auto">
+                <div className="mx-auto grid w-full max-w-md grid-cols-2 gap-4 px-4 py-4">
+                  {projects.map((project) => (
+                    <ProjectFolder
+                      key={project.id}
+                      variant="mobile"
+                      project={project}
+                      isDarkMode={isDarkMode}
+                      isActive={
+                        activeWindowId === project.id ||
+                        (activeWindowId === null &&
+                          selectedProjectId === project.id)
+                      }
+                      onSelect={() => setSelectedProjectId(project.id)}
+                      onOpen={() => handleOpenProject(project)}
+                      onRefreshMetadata={() => {
+                        void loadProjects();
+                      }}
+                    />
+                  ))}
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="absolute inset-0 z-10 pt-6 pb-16">
+              {projects.map((project, index) => {
+                const position =
+                  projectFolderPositions[project.id] ??
+                  getInitialProjectPosition(index);
 
-              return (
-                <ProjectFolder
-                  key={project.id}
-                  project={project}
-                  position={position}
-                  isDarkMode={isDarkMode}
-                  isActive={
-                    activeWindowId === project.id ||
-                    (activeWindowId === null &&
-                      selectedProjectId === project.id)
-                  }
-                  onSelect={() => setSelectedProjectId(project.id)}
-                  onOpen={() => handleOpenProject(project)}
-                  onRefreshMetadata={() => {
-                    void loadProjects();
-                  }}
-                  onPositionChange={(nextPosition: DesktopPosition) =>
-                    setProjectFolderPosition(project.id, nextPosition)
-                  }
-                />
-              );
-            })}
-          </div>
+                return (
+                  <ProjectFolder
+                    key={project.id}
+                    project={project}
+                    position={position}
+                    isDarkMode={isDarkMode}
+                    isActive={
+                      activeWindowId === project.id ||
+                      (activeWindowId === null &&
+                        selectedProjectId === project.id)
+                    }
+                    onSelect={() => setSelectedProjectId(project.id)}
+                    onOpen={() => handleOpenProject(project)}
+                    onRefreshMetadata={() => {
+                      void loadProjects();
+                    }}
+                    onPositionChange={(nextPosition: DesktopPosition) =>
+                      setProjectFolderPosition(project.id, nextPosition)
+                    }
+                  />
+                );
+              })}
+            </div>
+          )
         ) : null}
 
         {/* Windows */}
-        <div className="absolute inset-0 z-20 pt-6 pb-16">
-          {openWindows.map((window) => (
+        <div
+          className={`absolute inset-0 pt-6 pb-16 ${
+            openWindows.length > 0 ? "z-20" : "-z-10 hidden"
+          }`}
+        >
+          {visibleWindows.map((window) => (
             <Window
               key={window.id}
               window={window}
