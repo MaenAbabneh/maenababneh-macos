@@ -35,38 +35,30 @@ const formatUpdatedAt = (value: string) =>
     year: "numeric",
   }).format(new Date(value));
 
-const normalizeAssetUrl = (value: unknown) => {
-  if (typeof value !== "string") return undefined;
-  if (!value) return undefined;
+const normalizeAssetUrl = (value: unknown, projectUrl?: string) => {
+  if (typeof value !== "string" || !value) return undefined;
 
-  if (value.startsWith("public/")) {
-    return `/${value.slice("public/".length)}`;
+  let urlStr = value;
+
+  if (urlStr.includes("github.com") && urlStr.includes("/blob/")) {
+    urlStr = urlStr.replace("/blob/", "/raw/");
   }
 
-  return value;
-};
+  if (urlStr.startsWith("http") || urlStr.startsWith("data:")) return urlStr;
 
-const parseDimension = (value: unknown, fallback: number) => {
-  if (typeof value === "number" && value > 0) {
-    return value;
+  if (urlStr.startsWith("public/")) {
+    return `/${urlStr.slice("public/".length)}`;
   }
 
-  if (typeof value === "string") {
-    const parsed = Number.parseInt(value, 10);
-    if (Number.isFinite(parsed) && parsed > 0) {
-      return parsed;
-    }
+  if (projectUrl && !urlStr.startsWith("#") && !urlStr.startsWith("mailto:")) {
+    const cleanPath = urlStr.replace(/^(\.\/|\/)/, "");
+    const repoPath = projectUrl
+      .replace("https://github.com/", "")
+      .replace(/\/$/, "");
+    return `https://github.com/${repoPath}/raw/HEAD/${cleanPath}`;
   }
 
-  return fallback;
-};
-
-const isBadgeImage = (src: string) => {
-  return (
-    src.includes("img.shields.io") ||
-    src.includes("/badge/") ||
-    src.includes("badgen.net")
-  );
+  return urlStr;
 };
 
 const ProjectCard = ({
@@ -92,8 +84,9 @@ const ProjectCard = ({
             alt={project.name}
             fill
             sizes="(min-width: 1024px) 33vw, 100vw"
-            unoptimized
             className="object-cover"
+            quality={80}
+            loading="lazy"
           />
         ) : (
           <div className="absolute inset-0 bg-gradient-to-br from-amber-400 via-orange-500 to-slate-900" />
@@ -172,32 +165,20 @@ export default function Projects({
 
   const markdownComponents = useMemo(
     () => ({
-      img: ({
-        src,
-        alt,
-        width,
-        height,
-      }: React.ComponentPropsWithoutRef<"img">) => {
-        const normalizedSrc = normalizeAssetUrl(src);
-        const badge = normalizedSrc ? isBadgeImage(normalizedSrc) : false;
-        const imageWidth = parseDimension(width, badge ? 140 : 1280);
-        const imageHeight = parseDimension(height, badge ? 28 : 720);
+      img: ({ src, alt, ...props }: React.ComponentPropsWithoutRef<"img">) => {
+        const normalizedSrc = normalizeAssetUrl(src, project?.url);
+        if (!normalizedSrc) return null;
 
-        return normalizedSrc ? (
-          <Image
+        return (
+          /* eslint-disable-next-line @next/next/no-img-element */
+          <img
             src={normalizedSrc}
             alt={alt ?? "Markdown image"}
-            width={imageWidth}
-            height={imageHeight}
-            sizes="(min-width: 1024px) 900px, 100vw"
-            unoptimized
-            className={
-              badge
-                ? "my-1 mr-1 inline-block h-auto w-auto max-w-full align-middle"
-                : "my-4 h-auto max-w-full rounded-2xl border border-white/10 shadow-lg"
-            }
+            loading="lazy"
+            {...props}
+            className={`my-4 inline-block h-auto max-w-full rounded-lg object-contain shadow-sm ${props.className || ""}`}
           />
-        ) : null;
+        );
       },
       video: ({
         src,
@@ -206,13 +187,12 @@ export default function Projects({
         poster,
         ...props
       }: React.ComponentPropsWithoutRef<"video">) => {
-        const normalizedSrc = normalizeAssetUrl(src);
-
+        const normalizedSrc = normalizeAssetUrl(src, project?.url);
         return normalizedSrc ? (
           <video
             src={normalizedSrc}
             controls={controls ?? true}
-            poster={normalizeAssetUrl(poster)}
+            poster={normalizeAssetUrl(poster, project?.url)}
             className="my-4 w-full rounded-2xl border border-white/10 bg-black shadow-lg"
             {...props}
           >
@@ -221,8 +201,7 @@ export default function Projects({
         ) : null;
       },
       source: ({ src, ...props }: React.ComponentPropsWithoutRef<"source">) => {
-        const normalizedSrc = normalizeAssetUrl(src);
-
+        const normalizedSrc = normalizeAssetUrl(src, project?.url);
         return normalizedSrc ? <source src={normalizedSrc} {...props} /> : null;
       },
       iframe: ({
@@ -230,19 +209,38 @@ export default function Projects({
         title,
         ...props
       }: React.ComponentPropsWithoutRef<"iframe">) => {
-        const normalizedSrc = normalizeAssetUrl(src);
-
+        const normalizedSrc = normalizeAssetUrl(src, project?.url);
         return normalizedSrc ? (
           <iframe
             src={normalizedSrc}
             title={title ?? "Embedded content"}
             className="my-4 aspect-video w-full rounded-2xl border border-white/10 bg-black shadow-lg"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
             allowFullScreen
             {...props}
           />
         ) : null;
       },
+      table: ({ children }: { children?: React.ReactNode }) => (
+        <div className="my-4 w-full overflow-x-auto pb-2">
+          <table className="w-full min-w-[400px] border-collapse text-sm">
+            {children}
+          </table>
+        </div>
+      ),
+      th: ({ children }: { children?: React.ReactNode }) => (
+        <th
+          className={`border-b p-2 text-left font-semibold ${isDarkMode ? "border-white/20" : "border-gray-300"}`}
+        >
+          {children}
+        </th>
+      ),
+      td: ({ children }: { children?: React.ReactNode }) => (
+        <td
+          className={`border-b p-2 ${isDarkMode ? "border-white/10" : "border-gray-200"}`}
+        >
+          {children}
+        </td>
+      ),
       h1: ({ children }: { children?: React.ReactNode }) => (
         <h1 className="mb-4 text-2xl font-bold tracking-tight">{children}</h1>
       ),
@@ -277,8 +275,8 @@ export default function Projects({
           rel="noreferrer"
           className={
             isDarkMode
-              ? "text-cyan-300 hover:text-cyan-200"
-              : "text-cyan-700 hover:text-cyan-800"
+              ? "text-cyan-300 hover:text-cyan-200 break-words"
+              : "text-cyan-700 hover:text-cyan-800 break-words"
           }
         >
           {children}
@@ -317,7 +315,7 @@ export default function Projects({
         </blockquote>
       ),
     }),
-    [isDarkMode],
+    [isDarkMode, project?.url], // تحديث هام جداً هنا
   );
 
   useEffect(() => {
@@ -418,8 +416,10 @@ export default function Projects({
               </div>
             </div>
 
-            <div className="grid gap-6 p-6 lg:grid-cols-[1.2fr_0.8fr] lg:p-8">
-              <div className="space-y-5">
+            {/* التعديل هنا: استخدام grid-cols-1 للشاشات الصغيرة، و 3 أعمدة للكبيرة لمرونة أكبر */}
+            <div className="grid gap-6 p-6 lg:grid-cols-3 lg:p-8">
+              {/* القسم الأول: التفاصيل والـ README (يأخذ عمودين من أصل 3) */}
+              <div className="space-y-5 lg:col-span-2 min-w-0">
                 <div className="grid gap-3 sm:grid-cols-3">
                   <div
                     className={`rounded-2xl border ${borderColor} bg-white/5 p-4`}
@@ -467,7 +467,7 @@ export default function Projects({
                     README File
                   </div>
                   <div
-                    className={`max-h-[32rem] overflow-auto rounded-2xl border p-4 text-sm leading-7 ${isDarkMode ? "border-white/10 bg-black/20 text-gray-200" : "border-gray-200 bg-white text-gray-800"}`}
+                    className={`max-h-[32rem] overflow-x-hidden overflow-y-auto break-words rounded-2xl border p-4 text-sm leading-7 ${isDarkMode ? "border-white/10 bg-black/20 text-gray-200" : "border-gray-200 bg-white text-gray-800"}`}
                   >
                     {project.readmePreview ? (
                       <ReactMarkdown
@@ -486,9 +486,10 @@ export default function Projects({
                 </div>
               </div>
 
-              <div className="space-y-4">
+              {/* القسم الثاني: Actions (يأخذ عموداً واحداً، ومكانه مضمون ولن يختفي) */}
+              <div className="space-y-4 lg:col-span-1 min-w-0">
                 <div
-                  className={`rounded-3xl border ${borderColor} bg-white/5 p-5`}
+                  className={`rounded-3xl border ${borderColor} bg-white/5 p-5 sticky top-6`}
                 >
                   <div className="mb-4 flex items-center gap-2 text-sm font-medium">
                     <ArrowUpRight className="h-4 w-4" />
