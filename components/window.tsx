@@ -14,6 +14,7 @@ import { useDesktopStore } from "@/store/useDesktopStore";
 import { useSettingsStore } from "@/store/useSettingsStore";
 import { useIsDarkMode } from "@/hooks/use-is-dark-mode";
 import { useUISound } from "@/hooks/useUISounds";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const AppLoader = () => (
   <div className="flex items-center justify-center h-full w-full bg-inherit">
@@ -117,6 +118,7 @@ export default function Window({
   const clearCloseRequest = useDesktopStore((s) => s.clearCloseRequest);
   const reduceMotion = useSettingsStore((s) => s.reduceMotion);
   const { isDarkMode } = useIsDarkMode();
+  const isMobile = useIsMobile();
 
   const isMinimized = minimizedWindowIds.includes(windowId);
   const isRestoring = restoringWindowIds.includes(windowId);
@@ -159,6 +161,7 @@ export default function Window({
   });
 
   const AppComponent = componentMap[appWindow.component];
+  const isMinimizeDisabled = appWindow.component === "Projects";
 
   const setWindowPosition = useDesktopStore((s) => s.setWindowPosition);
   const setWindowSize = useDesktopStore((s) => s.setWindowSize);
@@ -684,7 +687,7 @@ export default function Window({
   ]);
 
   const handleTitleBarMouseDown = (e: React.MouseEvent) => {
-    if (isMaximized || isMinimized || isAnimating) return;
+    if (isMobile || isMaximized || isMinimized || isAnimating) return;
 
     // Prevent dragging when clicking on buttons
     if ((e.target as HTMLElement).closest(".window-controls")) {
@@ -701,7 +704,7 @@ export default function Window({
   };
 
   const handleResizeMouseDown = (e: React.MouseEvent, direction: string) => {
-    if (isMinimized || isAnimating) return;
+    if (isMobile || isMinimized || isAnimating) return;
     e.preventDefault();
     e.stopPropagation();
 
@@ -720,6 +723,7 @@ export default function Window({
   };
 
   const toggleMaximize = () => {
+    if (isMobile) return;
     if (isMaximized) {
       playSwitchOff();
       // Restore previous state
@@ -766,6 +770,7 @@ export default function Window({
   // Minimize with a Dock-targeted "Genie" animation
   const handleMinimize = () => {
     contextSafe(() => {
+      if (isMinimizeDisabled) return;
       if (isMinimized || isAnimatingMinimize || isRestoring) return;
 
       // Stop any in-progress interactions
@@ -852,16 +857,27 @@ export default function Window({
   const contentBgClass = isDarkMode ? "bg-gray-900" : "bg-white";
   const textClass = isDarkMode ? "text-white" : "text-gray-800";
 
+  const isEffectivelyMaximized = isMaximized || isMobile;
+
   return (
     <div
       ref={windowRef}
       data-role="window"
-      className={`absolute rounded-lg overflow-hidden shadow-2xl transition-shadow ${isActive ? "shadow-2xl" : "shadow-lg"}`}
+      className={`${isMobile ? "fixed" : "absolute"} rounded-lg overflow-hidden shadow-2xl transition-shadow ${isActive ? "shadow-2xl" : "shadow-lg"}`}
       style={{
-        left: `${position.x}px`,
-        top: `${position.y}px`,
-        width: `${size.width}px`,
-        height: `${size.height}px`,
+        ...(isMobile
+          ? {
+              left: 0,
+              right: 0,
+              top: `calc(${WINDOW_LAYOUT.menubarOffsetY}px + env(safe-area-inset-top))`,
+              bottom: `calc(${WINDOW_LAYOUT.dockReservedHeight}px + env(safe-area-inset-bottom))`,
+            }
+          : {
+              left: `${position.x}px`,
+              top: `${position.y}px`,
+              width: `${size.width}px`,
+              height: `${size.height}px`,
+            }),
         zIndex: isAnimating ? 80 : isActive ? 30 : 20,
         pointerEvents: isMinimized || isAnimating ? "none" : "auto",
       }}
@@ -896,6 +912,14 @@ export default function Window({
             <button
               className="w-3 h-3 rounded-full bg-yellow-500 hover:bg-yellow-600 flex items-center justify-center"
               onClick={handleMinimize}
+              disabled={isMinimizeDisabled}
+              aria-disabled={isMinimizeDisabled}
+              title={isMinimizeDisabled ? "Minimize disabled" : "Minimize"}
+              style={
+                isMinimizeDisabled
+                  ? { opacity: 0.5, cursor: "not-allowed" }
+                  : undefined
+              }
             >
               <Minus className="w-2 h-2 text-yellow-800 opacity-0 hover:opacity-100" />
             </button>
@@ -929,7 +953,7 @@ export default function Window({
         </div>
 
         {/* Resize handles */}
-        {!isMaximized && !isMinimized && !isAnimating && (
+        {!isEffectivelyMaximized && !isMinimized && !isAnimating && (
           <>
             {/* Corner resize handles */}
             <div
