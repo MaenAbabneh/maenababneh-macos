@@ -12,6 +12,7 @@ import { useSettingsStore } from "@/store/useSettingsStore";
 import { useSystemStore } from "@/store/useSystemStore";
 import { useIsDarkMode } from "@/hooks/use-is-dark-mode";
 import { useUISound } from "@/hooks/useUISounds";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 type BatteryManager = {
   level: number;
@@ -37,6 +38,7 @@ interface MenubarProps {
 export default function Menubar({ time }: MenubarProps) {
   const { isDarkMode } = useIsDarkMode();
   const { playSwitchOn, playSwitchOff, playPop } = useUISound();
+  const isMobile = useIsMobile();
 
   const prefersReducedMotionRef = useRef(false);
 
@@ -69,14 +71,20 @@ export default function Menubar({ time }: MenubarProps) {
   const menuRef = useRef<HTMLDivElement>(null);
   const wifiRef = useRef<HTMLDivElement>(null);
 
-  const formattedTime = time.toLocaleString("en-US", {
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-    hour12: true,
-  });
+  const formattedTime = isMobile
+    ? time.toLocaleTimeString("en-US", {
+        hour: "numeric",
+        minute: "2-digit",
+        hour12: true,
+      })
+    : time.toLocaleString("en-US", {
+        weekday: "short",
+        month: "short",
+        day: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+        hour12: true,
+      });
 
   const updateBatteryStatus = (battery: BatteryManager) => {
     setBatteryLevel(Math.round(battery.level * 100));
@@ -86,7 +94,8 @@ export default function Menubar({ time }: MenubarProps) {
   useEffect(() => {
     prefersReducedMotionRef.current =
       (window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ??
-        false) || reduceMotion;
+        false) ||
+      reduceMotion;
 
     // Try to get battery information if available
     const nav = navigator as NavigatorWithBattery;
@@ -214,12 +223,14 @@ export default function Menubar({ time }: MenubarProps) {
     <div
       ref={menuRef}
       data-role="menubar"
-      className={`fixed top-0 left-0 right-0 h-6 ${menuBgClass} z-50 flex items-center px-4 ${textClass} text-sm`}
+      className={`fixed top-0 left-0 right-0 ${menuBgClass} z-50 flex items-center overflow-hidden px-4 ${textClass} text-sm`}
       style={
         {
           backdropFilter: "blur(var(--menubar-blur))",
           WebkitBackdropFilter: "blur(var(--menubar-blur))",
           "--menubar-blur": "20px",
+          paddingTop: "env(safe-area-inset-top)",
+          height: "calc(24px + env(safe-area-inset-top))",
         } as React.CSSProperties
       }
     >
@@ -235,7 +246,7 @@ export default function Menubar({ time }: MenubarProps) {
 
         {activeMenu === "apple" && (
           <div
-            className={`absolute top-6 left-2 ${dropdownBgClass} rounded-lg shadow-xl ${textClass} py-1 w-56`}
+            className={`absolute top-full left-2 ${dropdownBgClass} rounded-lg shadow-xl ${textClass} py-1 w-56`}
           >
             <button className={`w-full text-left px-4 py-1 ${hoverClass}`}>
               About This Mac
@@ -303,7 +314,7 @@ export default function Menubar({ time }: MenubarProps) {
         )}
       </div>
 
-      <div className="flex items-center space-x-3" data-menubar-right>
+      <div className="flex min-w-0 items-center space-x-3" data-menubar-right>
         <span className="mr-1" data-menubar-right-item>
           {batteryLevel}%
         </span>
@@ -359,7 +370,7 @@ export default function Menubar({ time }: MenubarProps) {
           {showWifiToggle && (
             <div
               ref={wifiRef}
-              className={`absolute top-6 right-0 ${dropdownBgClass} rounded-lg shadow-xl ${textClass} py-3 px-4 w-64`}
+              className={`absolute top-full right-0 ${dropdownBgClass} rounded-lg shadow-xl ${textClass} py-3 px-4 w-64`}
             >
               <div className="flex items-center justify-between">
                 <span className="font-medium">Wi-Fi</span>
@@ -393,6 +404,8 @@ export default function Menubar({ time }: MenubarProps) {
             width={16}
             height={16}
             className="w-4 h-4"
+            quality={85}
+            loading="eager"
             style={{
               filter: isDarkMode ? "invert(1)" : "none",
               opacity: 0.9,
@@ -400,7 +413,16 @@ export default function Menubar({ time }: MenubarProps) {
           />
         </button>
 
-        <span data-menubar-right-item>{formattedTime}</span>
+        <span
+          data-menubar-right-item
+          className={
+            isMobile
+              ? "max-w-[6.75rem] truncate whitespace-nowrap text-xs"
+              : "whitespace-nowrap"
+          }
+        >
+          {formattedTime}
+        </span>
       </div>
     </div>
   );
