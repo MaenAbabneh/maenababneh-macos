@@ -3,9 +3,9 @@ import "./globals.css";
 import Providers from "./providers";
 
 export const metadata: Metadata = {
-  title: "Daniel Prior | macOS Portfolio",
+  title: "Maen Ababneh | macOS Portfolio",
   description:
-    "Personal portfolio of Daniel Prior, showcasing web development projects and skills",
+    "Personal portfolio of Maen Ababneh, showcasing web development projects and skills",
 };
 
 export default function RootLayout({
