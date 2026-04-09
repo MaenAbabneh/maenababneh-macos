@@ -145,6 +145,8 @@ export default function Music() {
             fill
             sizes="256px"
             className="object-cover"
+            quality={85}
+            loading="eager"
           />
         </div>
 
