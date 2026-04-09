@@ -6,7 +6,7 @@ A stunning, interactive macOS-inspired portfolio website built with Next.js and 
 [![Next.js](https://img.shields.io/badge/Next.js-13%2B-black)](https://nextjs.org/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.0-38B2AC)](https://tailwindcss.com/)
 
-![macOS Portfolio Demo](/macos-portfolio-demo.png)
+![macOS Portfolio Demo](/public/macos-portfolio-demo.png)
 
 ## 👨‍💻 Demo
 
