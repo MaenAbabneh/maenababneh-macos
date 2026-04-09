@@ -125,6 +125,8 @@ export default function Launchpad() {
                   width={48}
                   height={48}
                   className="w-12 h-12 object-contain"
+                  quality={85}
+                  loading="lazy"
                 />
               </div>
               <span className="text-white text-sm text-center">
