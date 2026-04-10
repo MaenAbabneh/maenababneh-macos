@@ -155,10 +155,11 @@ export default function LoginScreen() {
       >
         <div className="w-24 h-24 rounded-full overflow-hidden bg-gray-300 flex items-center justify-center mb-4">
           <Image
-            src="/letter-m.png"
+            src="https://res.cloudinary.com/djy5oyivn/image/upload/q_auto/f_auto/v1775836236/letter-m_lou3dp.png"
             alt="User avatar"
             width={96}
             height={96}
+            unoptimized
             className="object-cover w-full h-full"
           />
         </div>
