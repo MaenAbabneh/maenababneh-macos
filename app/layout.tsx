@@ -46,7 +46,7 @@ export const metadata: Metadata = {
     siteName: "Maen Ababneh Portfolio",
     images: [
       {
-        url: "/banner.png",
+        url: "https://res.cloudinary.com/djy5oyivn/image/upload/q_auto/f_auto/v1775839278/macos-demo_ajjcda.png",
         width: 1200,
         height: 630,
         alt: "Maen Ababneh Portfolio Preview",
@@ -58,7 +58,9 @@ export const metadata: Metadata = {
     title: "Maen Ababneh | Creative Web Developer",
     description:
       "Interactive macOS-themed personal portfolio showcasing my web development projects and skills.",
-    images: ["/banner.png"],
+    images: [
+      "https://res.cloudinary.com/djy5oyivn/image/upload/q_auto/f_auto/v1775839278/macos-demo_ajjcda.png",
+    ],
   },
   robots: {
     index: true,
@@ -108,7 +110,6 @@ export default function RootLayout({
       <body>
         <script
           type="application/ld+json"
-          // eslint-disable-next-line react/no-danger
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
         <Providers>{children}</Providers>
