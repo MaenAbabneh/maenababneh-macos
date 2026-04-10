@@ -74,8 +74,9 @@ const DOCK_APP_IDS = [
   "facetime",
   "terminal",
   "github",
-  "youtube",
+  "snake",
   "spotify",
+  "settings",
 ] as const;
 
 const indexById = new Map(APP_REGISTRY.map((app) => [app.id, app]));
