@@ -24,7 +24,7 @@ interface SafariProps {
 }
 
 export default function Safari({ isDarkMode = true }: SafariProps) {
-  const [url, setUrl] = useState("https://danielprior.dev");
+  const [url, setUrl] = useState("https://maenababneh.dev");
   const [isLoading, setIsLoading] = useState(false);
   const activeTab = "home";
   const wifiEnabled = useSettingsStore((s) => s.wifiEnabled);
