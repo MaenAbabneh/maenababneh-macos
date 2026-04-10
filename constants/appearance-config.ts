@@ -1,18 +1,35 @@
 export const WALLPAPERS = [
   {
+    id: "default",
+    name: "Default",
+    thumbSrc:
+      "https://res.cloudinary.com/djy5oyivn/image/upload/q_auto/f_auto/v1775835368/room-morning_g9hurf.png",
+    lightSrc:
+      "https://res.cloudinary.com/djy5oyivn/image/upload/q_auto/f_auto/v1775835368/room-morning_g9hurf.png",
+    darkSrc:
+      "https://res.cloudinary.com/djy5oyivn/image/upload/q_auto/f_auto/v1775835368/room-night_p1nvyr.png",
+    category: "Room",
+  },
+  {
     id: "catalina",
     name: "Catalina",
-    thumbSrc: "/wallpaper-day.jpg",
-    lightSrc: "/wallpaper-day.jpg",
-    darkSrc: "/wallpaper-night.jpg",
+    thumbSrc:
+      "https://res.cloudinary.com/djy5oyivn/image/upload/q_auto/f_auto/v1775838605/wallpaper-day_tych1h.jpg",
+    lightSrc:
+      "https://res.cloudinary.com/djy5oyivn/image/upload/q_auto/f_auto/v1775838605/wallpaper-day_tych1h.jpg",
+    darkSrc:
+      "https://res.cloudinary.com/djy5oyivn/image/upload/q_auto/f_auto/v1775838605/wallpaper-night_ogxet7.jpg",
     category: "macOS",
   },
   {
     id: "ventura",
     name: "Ventura Glow",
-    thumbSrc: "/wallpaper-day2.jpg",
-    lightSrc: "/wallpaper-day2.jpg",
-    darkSrc: "/wallpaper-night2.jpg",
+    thumbSrc:
+      "https://res.cloudinary.com/djy5oyivn/image/upload/q_auto/f_auto/v1775839048/wallpaper-day2_yfxl9b.jpg",
+    lightSrc:
+      "https://res.cloudinary.com/djy5oyivn/image/upload/q_auto/f_auto/v1775839048/wallpaper-day2_yfxl9b.jpg",
+    darkSrc:
+      "https://res.cloudinary.com/djy5oyivn/image/upload/q_auto/f_auto/v1775839049/wallpaper-night2_dcl8yt.jpg",
     category: "macOS",
   },
   {
@@ -90,6 +107,22 @@ export const ACCENT_COLORS = [
 ] as const;
 
 export const THEME_PRESETS = [
+  {
+    id: "light",
+    name: "Morning",
+    description: "my room look",
+    isDarkMode: false,
+    wallpaperId: "default",
+    accentColorId: "blue",
+  },
+  {
+    id: "dark",
+    name: "Night",
+    description: "my room look at night",
+    isDarkMode: true,
+    wallpaperId: "default",
+    accentColorId: "blue",
+  },
   {
     id: "light",
     name: "Light",
