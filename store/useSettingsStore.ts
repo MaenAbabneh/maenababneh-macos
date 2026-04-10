@@ -56,7 +56,7 @@ export const useSettingsStore = create<SettingsStore>()(
       bluetoothEnabled: true,
       volume: CONTROL_CENTER_CONFIG.defaultVolume,
       reduceMotion: false,
-      wallpaperId: "catalina" as WallpaperId,
+      wallpaperId: "default" as WallpaperId,
       accentColorId: "blue" as AccentColorId,
       fontSize: "medium" as const,
       highContrast: false,
