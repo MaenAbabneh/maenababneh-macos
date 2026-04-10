@@ -222,7 +222,7 @@ export default function Settings({ isDarkMode = true }: SettingsProps) {
                 <div className="flex flex-col gap-5 md:flex-row md:items-center">
                   <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-2xl border border-white/20">
                     <Image
-                      src="https://res.cloudinary.com/dsgajdqm0/image/upload/v1772971236/Profile_lfmhs0.png"
+                      src="https://res.cloudinary.com/dsgajdqm0/image/upload/q_auto/f_auto/v1772971236/Profile_lfmhs0.png"
                       alt="Maen Ababneh"
                       fill
                       sizes="96px"
