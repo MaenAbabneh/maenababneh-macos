@@ -10,9 +10,12 @@ import { Input } from "@/components/ui/input";
 import { useUISound } from "@/hooks/useUISounds";
 import { useSystemStore } from "@/store/useSystemStore";
 import { useTheme } from "next-themes";
+import { useSettingsStore } from "@/store/useSettingsStore";
+import { WALLPAPERS } from "@/constants/appearance-config";
 
 export default function LoginScreen() {
   const login = useSystemStore((s) => s.login);
+  const wallpaperId = useSettingsStore((s) => s.wallpaperId);
   const { playStartup, playLogin } = useUISound();
   const { resolvedTheme, setTheme } = useTheme();
   const [hasMounted, setHasMounted] = useState(false);
@@ -22,7 +25,6 @@ export default function LoginScreen() {
 
   const [isUnlocked, setIsUnlocked] = useState(false);
   const [password, setPassword] = useState("");
-  const [error, setError] = useState(false);
   const [time, setTime] = useState<Date | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -95,15 +97,11 @@ export default function LoginScreen() {
 
     if (isSubmitting) return;
 
-    if (password.length > 0) {
-      playLogin();
-      setIsSubmitting(true);
-      window.setTimeout(() => {
-        login();
-      }, 220);
-    } else {
-      setError(true);
-    }
+    playLogin();
+    setIsSubmitting(true);
+    window.setTimeout(() => {
+      login();
+    }, 220);
   };
 
   const formattedTime = time
@@ -122,8 +120,15 @@ export default function LoginScreen() {
       })
     : "";
 
+  const selectedWallpaper =
+    WALLPAPERS.find((w) => w.id === wallpaperId) ??
+    WALLPAPERS.find((w) => w.id === "default") ??
+    WALLPAPERS[0];
+
   // Choose wallpaper based on dark/light mode
-  const wallpaper = isDarkMode ? "/wallpaper-night.jpg" : "/wallpaper-day.jpg";
+  const wallpaper = isDarkMode
+    ? selectedWallpaper?.darkSrc
+    : selectedWallpaper?.lightSrc;
 
   return (
     <div
@@ -173,26 +178,15 @@ export default function LoginScreen() {
             value={password}
             onChange={(e) => {
               setPassword(e.target.value);
-              setError(false);
             }}
             disabled={isSubmitting || !isUnlocked}
-            className={`w-64 bg-white/20 backdrop-blur-md border-0 text-white placeholder:text-white/70 mb-2 ${
-              error ? "ring-2 ring-red-500" : ""
-            }`}
+            className="w-64 bg-white/20 backdrop-blur-md border-0 text-white placeholder:text-white/70 mb-2"
           />
-
-          {error && isUnlocked && (
-            <p className="text-red-500 text-sm mb-2">Please enter a password</p>
-          )}
           <Button
             type="submit"
             variant="outline"
             disabled={isSubmitting || !isUnlocked}
             className="mt-2 bg-white/20 backdrop-blur-md border-0 text-white hover:bg-white/30"
-            onClick={() => {
-              if (!isUnlocked || isSubmitting || password.length === 0) return;
-              playLogin();
-            }}
           >
             Login
           </Button>
