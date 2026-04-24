@@ -108,7 +108,10 @@ export default function HomeClient() {
 
     if (modelContext.registerTool) {
       for (const tool of context.tools) {
-        void modelContext.registerTool({ ...tool, signal: abortController.signal });
+        void modelContext.registerTool({
+          ...tool,
+          signal: abortController.signal,
+        });
       }
     } else if (modelContext.provideContext) {
       void modelContext.provideContext(context);
@@ -153,4 +156,3 @@ export default function HomeClient() {
     </div>
   );
 }
-
