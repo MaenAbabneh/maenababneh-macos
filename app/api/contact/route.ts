@@ -1,36 +1,36 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Resend } from "resend";
+import { z } from "zod";
 
 const resend = new Resend(process.env.RESEND_API_KEY ?? "re_xxxxxxxxx");
 
-interface ContactRequest {
-  name: string;
-  email: string;
-  phone: string;
-  message: string;
-}
+const contactRequestSchema = z.object({
+  name: z.string().trim().min(2, "Name is required"),
+  email: z.email("Invalid email format"),
+  phone: z
+    .string()
+    .trim()
+    .min(7, "Phone is too short")
+    .max(20, "Phone is too long"),
+  message: z.string().trim().min(5, "Message is too short"),
+});
 
 export async function POST(request: NextRequest) {
   try {
-    const body = (await request.json()) as ContactRequest;
-    const { name, email, phone, message } = body;
+    const body = await request.json();
+    const parsedBody = contactRequestSchema.safeParse(body);
 
-    // Validate required fields
-    if (!name || !email || !phone || !message) {
+    if (!parsedBody.success) {
       return NextResponse.json(
-        { error: "Missing required fields" },
+        {
+          error: "Validation failed",
+          issues: parsedBody.error.flatten().fieldErrors,
+        },
         { status: 400 },
       );
     }
 
-    // Validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      return NextResponse.json(
-        { error: "Invalid email format" },
-        { status: 400 },
-      );
-    }
+    const { name, email, phone, message } = parsedBody.data;
 
     if (!process.env.RESEND_API_KEY) {
       return NextResponse.json(
