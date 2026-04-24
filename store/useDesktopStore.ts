@@ -15,6 +15,7 @@ type DesktopState = {
   openingWindowIds: string[];
   closingWindowIds: string[];
   projectFolderPositions: Record<string, DesktopPosition>;
+  contactFolderPosition: DesktopPosition | null;
 };
 
 type DesktopActions = {
@@ -41,6 +42,7 @@ type DesktopActions = {
   setWindowPosition: (id: string, position: AppWindow["position"]) => void;
   setWindowSize: (id: string, size: AppWindow["size"]) => void;
   setProjectFolderPosition: (id: string, position: DesktopPosition) => void;
+  setContactFolderPosition: (position: DesktopPosition) => void;
 };
 
 export type DesktopStore = DesktopState & DesktopActions;
@@ -58,6 +60,7 @@ export const useDesktopStore = create<DesktopStore>()(
       openingWindowIds: [],
       closingWindowIds: [],
       projectFolderPositions: {},
+      contactFolderPosition: null,
 
       openApp: (app) => {
         const {
@@ -263,6 +266,20 @@ export const useDesktopStore = create<DesktopStore>()(
           },
         });
       },
+
+      setContactFolderPosition: (position) => {
+        const { contactFolderPosition } = get();
+
+        if (
+          contactFolderPosition &&
+          contactFolderPosition.x === position.x &&
+          contactFolderPosition.y === position.y
+        ) {
+          return;
+        }
+
+        set({ contactFolderPosition: position });
+      },
     }),
     {
       name: STORAGE_KEYS.desktopState,
@@ -276,6 +293,7 @@ export const useDesktopStore = create<DesktopStore>()(
         showControlCenter: state.showControlCenter,
         showSpotlight: state.showSpotlight,
         projectFolderPositions: state.projectFolderPositions,
+        contactFolderPosition: state.contactFolderPosition,
       }),
     },
   ),
