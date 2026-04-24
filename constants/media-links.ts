@@ -1,4 +1,9 @@
 export const MAIL_TO_URL = "mailto:hi@maenababneh.dev";
+export const CALENDLY_URL = "https://calendly.com/ababnh21/30min";
+export const PHONE_NUMBER = "0779631006";
+export const PHONE_URL = "tel:0779631006";
+export const WHATSAPP_NUMBER = "962779631006";
+export const WHATSAPP_URL = `https://wa.me/${WHATSAPP_NUMBER}`;
 export const YOUTUBE_CHANNEL_URL = "https://www.youtube.com/@thecompasstech";
 export const WEBSITE_URL = "https://maenababneh.dev";
 export const RESUME_URL = "/resume.pdf";
@@ -20,7 +25,7 @@ export const PERSONAL_WEBSITES: WebsiteLink[] = [
     demoUrl: "https://creative-overflow.maenababneh.dev/",
     githubUrl: "https://github.com/MaenAbabneh/creativeflow",
     description:
-      "Basically Stack Overflow, but with AI answers and way less passive-aggressive devs closing your questions as 'duplicate'. Built with Next.js Server Actions for that sweet performance.",
+      "A helpful Q&A experience that makes it easier for people to get clear answers fast. Built with Next.js Server Actions to keep it quick and reliable.",
     image:
       "https://images.unsplash.com/photo-1555099962-4199c345e5dd?q=80&w=2070&auto=format&fit=crop",
   },
@@ -29,7 +34,7 @@ export const PERSONAL_WEBSITES: WebsiteLink[] = [
     demoUrl: "https://gta.maenababneh.dev/",
     githubUrl: "https://github.com/MaenAbabneh/gta-landingPage",
     description:
-      "Rockstar was taking too long, so I animated my own. Pushed GSAP to its absolute limits for buttery-smooth scrolling experiences, all while praying Take-Two doesn't sue me.",
+      "A cinematic landing page built to feel bold and memorable from the first scroll. It uses GSAP to create smooth motion and a polished presentation.",
     image:
       "https://images.unsplash.com/photo-1555099962-4199c345e5dd?q=80&w=2070&auto=format&fit=crop",
   },
@@ -38,7 +43,7 @@ export const PERSONAL_WEBSITES: WebsiteLink[] = [
     demoUrl: "https://maenababneh.dev/",
     githubUrl: "https://github.com/MaenAbabneh/3d-portfolio",
     description:
-      "Because flat websites are so 2010. I built a fully interactive 3D universe using Next.js and Three.js just to flex my graphics programming skills—and to mildly stress-test your browser's GPU. Don't worry, it's optimized.",
+      "An interactive portfolio designed to make the work feel more memorable and easier to explore. It combines Next.js and Three.js for a modern, polished experience.",
     image:
       "https://images.unsplash.com/photo-1555099962-4199c345e5dd?q=80&w=2070&auto=format&fit=crop",
   },
