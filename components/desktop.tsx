@@ -11,8 +11,10 @@ import Wallpaper from "@/components/wallpaper";
 import Window from "@/components/window";
 import Launchpad from "@/components/launchpad";
 import ControlCenter from "@/components/control-center";
+import ContactFolder from "@/components/contact-folder";
 import Spotlight from "@/components/spotlight";
 import SystemNotifications from "@/components/system-notifications";
+import QuickContactWidget from "@/components/quick-contact-widget";
 import ProjectFolder from "@/components/project-folder";
 import { PERSONAL_WEBSITES } from "@/constants/media-links";
 import { useDesktopStore } from "@/store/useDesktopStore";
@@ -22,6 +24,7 @@ import { useUISound } from "@/hooks/useUISounds";
 import { useIsDarkMode } from "@/hooks/use-is-dark-mode";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { UI_MOBILE_BREAKPOINT } from "@/constants/ui-config";
+import { useNotificationStore } from "@/store/useNotificationStore";
 import type { DesktopPosition, GitHubProjectSummary } from "@/types";
 
 type ProjectsApiResponse = {
@@ -71,6 +74,7 @@ export default function Desktop() {
   const [time, setTime] = useState(new Date());
   const { playPop } = useUISound();
   const isMobile = useIsMobile();
+  const [pulseContact, setPulseContact] = useState(false);
 
   const desktopIntroNonce = useSystemStore((s) => s.desktopIntroNonce);
   const desktopIntroLastPlayedNonce = useSystemStore(
@@ -96,13 +100,19 @@ export default function Desktop() {
   const setProjectFolderPosition = useDesktopStore(
     (s) => s.setProjectFolderPosition,
   );
+  const contactFolderPosition = useDesktopStore((s) => s.contactFolderPosition);
+  const setContactFolderPosition = useDesktopStore(
+    (s) => s.setContactFolderPosition,
+  );
 
   const screenBrightness = useSettingsStore((s) => s.screenBrightness);
   const reduceMotion = useSettingsStore((s) => s.reduceMotion);
   const { isDarkMode } = useIsDarkMode();
+  const pushNotification = useNotificationStore((s) => s.pushNotification);
   const rootRef = useRef<HTMLDivElement>(null);
   const desktopRef = useRef<HTMLDivElement>(null);
   const prefersReducedMotionRef = useRef(false);
+  const contactIntroShownRef = useRef(false);
   const [projects, setProjects] = useState<GitHubProjectSummary[]>([]);
   const [projectsLoaded, setProjectsLoaded] = useState(false);
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(
@@ -129,6 +139,49 @@ export default function Desktop() {
 
     return () => clearInterval(timer);
   }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (desktopIntroNonce <= desktopIntroLastPlayedNonce) return;
+    if (contactIntroShownRef.current) return;
+
+    const storageKey = "contact-intro-shown-v1";
+    if (window.sessionStorage.getItem(storageKey) === "1") {
+      contactIntroShownRef.current = true;
+      return;
+    }
+
+    contactIntroShownRef.current = true;
+    window.sessionStorage.setItem(storageKey, "1");
+
+    const notificationTimer = window.setTimeout(() => {
+      pushNotification({
+        appName: "Let's Talk",
+        appIcon: "💬",
+        title: "ready to chat?",
+        message:
+          " I'm here to answer your questions and discuss potential opportunities. Feel free to reach out!",
+        action: {
+          label: "Open",
+          appId: "contact",
+        },
+      });
+    }, 900);
+
+    const pulseOnTimer = window.setTimeout(() => {
+      setPulseContact(true);
+    }, 650);
+
+    const pulseOffTimer = window.setTimeout(() => {
+      setPulseContact(false);
+    }, 3600);
+
+    return () => {
+      window.clearTimeout(notificationTimer);
+      window.clearTimeout(pulseOnTimer);
+      window.clearTimeout(pulseOffTimer);
+    };
+  }, [desktopIntroLastPlayedNonce, desktopIntroNonce, pushNotification]);
 
   useEffect(() => {
     prefersReducedMotionRef.current =
@@ -542,6 +595,22 @@ export default function Desktop() {
     });
   };
 
+  const handleOpenContact = () => {
+    openApp({
+      id: "contact",
+      title: "Let's Talk",
+      component: "Contact",
+      position: {
+        x: 220,
+        y: 120,
+      },
+      size: {
+        width: 860,
+        height: 620,
+      },
+    });
+  };
+
   return (
     <div ref={rootRef} data-screen="desktop" className="relative">
       <div
@@ -588,6 +657,14 @@ export default function Desktop() {
             </div>
           ) : (
             <div className="absolute inset-0 z-10 pt-6 pb-16">
+              <ContactFolder
+                isDarkMode={isDarkMode}
+                isActive={activeWindowId === "contact"}
+                position={contactFolderPosition ?? undefined}
+                onOpen={handleOpenContact}
+                onSelect={() => {}}
+                onPositionChange={setContactFolderPosition}
+              />
               {projects.map((project, index) => {
                 const position =
                   projectFolderPositions[project.id] ??
@@ -646,7 +723,9 @@ export default function Desktop() {
 
         <SystemNotifications />
 
-        <Dock />
+        <QuickContactWidget />
+
+        <Dock pulseContact={pulseContact} />
       </div>
 
       {/* Brightness overlay */}
