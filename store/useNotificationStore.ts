@@ -7,6 +7,10 @@ export type SystemNotification = {
   title: string;
   message: string;
   createdAt: number;
+  action?: {
+    label: string;
+    appId: string;
+  };
 };
 
 type NotificationState = {
@@ -24,7 +28,7 @@ export type NotificationStore = NotificationState & NotificationActions;
 
 export const useNotificationStore = create<NotificationStore>()((set) => ({
   notifications: [],
-  pushNotification: ({ appName, appIcon, title, message }) =>
+  pushNotification: ({ appName, appIcon, title, message, action }) =>
     set((state) => ({
       notifications: [
         {
@@ -34,6 +38,7 @@ export const useNotificationStore = create<NotificationStore>()((set) => ({
           title,
           message,
           createdAt: Date.now(),
+          action,
         },
         ...state.notifications,
       ].slice(0, 4),
