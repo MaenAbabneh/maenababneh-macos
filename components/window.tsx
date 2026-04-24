@@ -69,6 +69,10 @@ const Settings = dynamic(() => import("@/components/apps/settings"), {
   loading: () => <AppLoader />,
 });
 
+const HireMe = dynamic(() => import("@/components/apps/hire-me"), {
+  loading: () => <AppLoader />,
+});
+
 gsap.registerPlugin(Flip);
 
 type AppWindowContentProps = {
@@ -94,6 +98,7 @@ const componentMap: Record<
   Weather,
   Projects,
   Settings,
+  HireMe,
 };
 
 interface WindowProps {
