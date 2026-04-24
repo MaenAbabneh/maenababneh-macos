@@ -206,20 +206,19 @@ export default function Safari({ isDarkMode = true }: SafariProps) {
                       Maen Ababenh - Portfolio
                     </h3>
                     <p className="mb-4">
-                      Welcome to my portfolio website! I&apos;m a creative web
-                      developer specializing in creating beautiful, responsive,
-                      and user-friendly web applications.
+                      Welcome to my portfolio website. I build clear, polished
+                      websites that make it easy for people to understand what
+                      you do.
                     </p>
                     <p className="mb-4">
-                      With expertise in React, Next.js, TypeScript, and modern
-                      CSS frameworks, I build performant web experiences that
-                      users love.
+                      I work with React, Next.js, TypeScript, and modern CSS to
+                      create fast, reliable experiences that feel easy to use.
                     </p>
                     <div className="flex justify-end">
                       <button
                         className={`px-4 py-2 rounded ${isDarkMode ? "bg-blue-600 hover:bg-blue-700" : "bg-blue-500 hover:bg-blue-600"} text-white`}
                       >
-                        View Projects
+                        See my work
                       </button>
                     </div>
                   </div>
