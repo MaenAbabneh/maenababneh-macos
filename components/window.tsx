@@ -3,13 +3,17 @@
 import type React from "react";
 import dynamic from "next/dynamic";
 import { Loader2 } from "lucide-react";
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { X, Minus, ArrowRightIcon as ArrowsMaximize } from "lucide-react";
 import gsap from "gsap";
 import Flip from "gsap/Flip";
 import { useGSAP } from "@gsap/react";
 import type { AppWindow, GitHubProjectSummary } from "@/types";
-import { WINDOW_LAYOUT, WINDOW_MIN_SIZE } from "@/constants/window-config";
+import {
+  APP_WINDOW_DEFAULT_SIZE,
+  WINDOW_LAYOUT,
+  WINDOW_MIN_SIZE,
+} from "@/constants/window-config";
 import { useDesktopStore } from "@/store/useDesktopStore";
 import { useSettingsStore } from "@/store/useSettingsStore";
 import { useIsDarkMode } from "@/hooks/use-is-dark-mode";
@@ -41,6 +45,9 @@ const Terminal = dynamic(() => import("@/components/apps/terminal"), {
   loading: () => <AppLoader />,
 });
 const Mail = dynamic(() => import("@/components/apps/mail"), {
+  loading: () => <AppLoader />,
+});
+const Contact = dynamic(() => import("@/components/apps/contact"), {
   loading: () => <AppLoader />,
 });
 const YouTube = dynamic(() => import("@/components/apps/youtube"), {
@@ -80,6 +87,7 @@ const componentMap: Record<
   FaceTime,
   Terminal,
   Mail,
+  Contact,
   YouTube,
   Spotify,
   Snake,
@@ -140,18 +148,48 @@ export default function Window({
     AppWindow["position"] | null
   >(null);
   const [draftSize, setDraftSize] = useState<AppWindow["size"] | null>(null);
-  const position = draftPosition ?? appWindow.position;
-  const size = draftSize ?? appWindow.size;
+
+  const defaultPosition = useMemo(
+    () => ({
+      x: WINDOW_LAYOUT.menubarOffsetY + 100,
+      y: 100,
+    }),
+    [],
+  );
+
+  const defaultSize = useMemo(
+    () => ({
+      width: APP_WINDOW_DEFAULT_SIZE.width,
+      height: APP_WINDOW_DEFAULT_SIZE.height,
+    }),
+    [],
+  );
+
+  const position = useMemo(
+    () => draftPosition ?? appWindow.position ?? defaultPosition,
+    [draftPosition, appWindow.position, defaultPosition],
+  );
+
+  const size = useMemo(
+    () => draftSize ?? appWindow.size ?? defaultSize,
+    [draftSize, appWindow.size, defaultSize],
+  );
 
   const positionRef = useRef(position);
   const sizeRef = useRef(size);
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [isMaximized, setIsMaximized] = useState(false);
-  const [preMaximizeState, setPreMaximizeState] = useState({
-    position: appWindow.position,
-    size: appWindow.size,
-  });
+  const [preMaximizeState, setPreMaximizeState] = useState(() => ({
+    position: appWindow.position ?? {
+      x: WINDOW_LAYOUT.menubarOffsetY + 100,
+      y: 100,
+    },
+    size: appWindow.size ?? {
+      width: APP_WINDOW_DEFAULT_SIZE.width,
+      height: APP_WINDOW_DEFAULT_SIZE.height,
+    },
+  }));
   const [isResizing, setIsResizing] = useState(false);
   const [resizeDirection, setResizeDirection] = useState<string | null>(null);
   const [resizeStartPos, setResizeStartPos] = useState({ x: 0, y: 0 });
@@ -161,7 +199,8 @@ export default function Window({
   });
 
   const AppComponent = componentMap[appWindow.component];
-  const isMinimizeDisabled = appWindow.component === "Projects";
+  const isMinimizeDisabled =
+    appWindow.component === "Projects" || appWindow.component === "Contact";
 
   const setWindowPosition = useDesktopStore((s) => s.setWindowPosition);
   const setWindowSize = useDesktopStore((s) => s.setWindowSize);
