@@ -68,12 +68,17 @@ export const APP_REGISTRY: AppRegistryItem[] = [
     component: "Settings",
     isSystem: true,
   },
+  {
+    id: "hire-me",
+    title: "Hire Me",
+    icon: "/hire-me.webp",
+    component: "HireMe",
+  },
 ];
 
 const DOCK_APP_IDS = [
   "launchpad",
   "safari",
-  "contact",
   "vscode",
   "notes",
   "facetime",
@@ -81,6 +86,8 @@ const DOCK_APP_IDS = [
   "github",
   "snake",
   "spotify",
+  "contact",
+  "hire-me",
   "settings",
 ] as const;
 
