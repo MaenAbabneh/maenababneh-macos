@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import gsap from "gsap";
 import { Bell, X } from "lucide-react";
+import { useDesktopStore } from "@/store/useDesktopStore";
 import { useNotificationStore } from "@/store/useNotificationStore";
 import { useIsDarkMode } from "@/hooks/use-is-dark-mode";
 import { useSettingsStore } from "@/store/useSettingsStore";
@@ -12,9 +13,20 @@ export default function SystemNotifications() {
   const dismissNotification = useNotificationStore(
     (s) => s.dismissNotification,
   );
+  const openApp = useDesktopStore((s) => s.openApp);
   const reduceMotion = useSettingsStore((s) => s.reduceMotion);
   const { isDarkMode } = useIsDarkMode();
   const rootRef = useRef<HTMLDivElement>(null);
+
+  const openContactApp = () => {
+    openApp({
+      id: "contact",
+      title: "Let's Talk",
+      component: "Contact",
+      position: { x: 220, y: 120 },
+      size: { width: 860, height: 620 },
+    });
+  };
 
   useEffect(() => {
     if (!notifications.length) return;
@@ -93,6 +105,20 @@ export default function SystemNotifications() {
                 <p className="mt-0.5 text-xs opacity-90">
                   {notification.message}
                 </p>
+                {notification.action ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (notification.action?.appId === "contact") {
+                        openContactApp();
+                      }
+                      dismissNotification(notification.id);
+                    }}
+                    className="mt-2 rounded-md bg-blue-500 px-2 py-1 text-xs font-medium text-white transition hover:bg-blue-400"
+                  >
+                    {notification.action.label}
+                  </button>
+                ) : null}
               </div>
             </div>
 
