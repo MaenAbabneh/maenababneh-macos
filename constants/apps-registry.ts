@@ -15,9 +15,14 @@ export const APP_REGISTRY: AppRegistryItem[] = [
     isSystem: true,
   },
   { id: "safari", title: "Safari", icon: "/safari.png", component: "Safari" },
-  { id: "mail", title: "Mail", icon: "/mail.png", component: "Mail" },
   { id: "vscode", title: "VS Code", icon: "/vscode.png", component: "VSCode" },
   { id: "notes", title: "Notes", icon: "/notes.png", component: "Notes" },
+  {
+    id: "contact",
+    title: "Let's Talk",
+    icon: "/mail.png",
+    component: "Contact",
+  },
   {
     id: "facetime",
     title: "FaceTime",
@@ -68,7 +73,7 @@ export const APP_REGISTRY: AppRegistryItem[] = [
 const DOCK_APP_IDS = [
   "launchpad",
   "safari",
-  "mail",
+  "contact",
   "vscode",
   "notes",
   "facetime",
