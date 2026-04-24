@@ -31,3 +31,6 @@ next-env.d.ts
 
 # playwright
 /.playwright-mcp
+
+# .codex
+.codex
