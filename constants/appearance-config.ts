@@ -108,7 +108,7 @@ export const ACCENT_COLORS = [
 
 export const THEME_PRESETS = [
   {
-    id: "light",
+    id: "room-light",
     name: "Morning",
     description: "my room look",
     isDarkMode: false,
@@ -116,7 +116,7 @@ export const THEME_PRESETS = [
     accentColorId: "blue",
   },
   {
-    id: "dark",
+    id: "room-dark",
     name: "Night",
     description: "my room look at night",
     isDarkMode: true,
@@ -124,7 +124,7 @@ export const THEME_PRESETS = [
     accentColorId: "blue",
   },
   {
-    id: "light",
+    id: "catalina-light",
     name: "Light",
     description: "Classic light appearance",
     isDarkMode: false,
@@ -132,7 +132,7 @@ export const THEME_PRESETS = [
     accentColorId: "blue",
   },
   {
-    id: "dark",
+    id: "catalina-dark",
     name: "Dark",
     description: "Elegant dark appearance",
     isDarkMode: true,
