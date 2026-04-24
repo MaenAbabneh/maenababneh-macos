@@ -25,7 +25,7 @@ export const PERSONAL_WEBSITES: WebsiteLink[] = [
     demoUrl: "https://creative-overflow.maenababneh.dev/",
     githubUrl: "https://github.com/MaenAbabneh/creativeflow",
     description:
-      "A helpful Q&A experience that makes it easier for people to get clear answers fast. Built with Next.js Server Actions to keep it quick and reliable.",
+      "A clean product experience designed to help users find useful answers faster and with less friction.",
     image:
       "https://images.unsplash.com/photo-1555099962-4199c345e5dd?q=80&w=2070&auto=format&fit=crop",
   },
@@ -34,7 +34,7 @@ export const PERSONAL_WEBSITES: WebsiteLink[] = [
     demoUrl: "https://gta.maenababneh.dev/",
     githubUrl: "https://github.com/MaenAbabneh/gta-landingPage",
     description:
-      "A cinematic landing page built to feel bold and memorable from the first scroll. It uses GSAP to create smooth motion and a polished presentation.",
+      "A cinematic landing page concept focused on bold presentation, smooth storytelling, and high visual impact.",
     image:
       "https://images.unsplash.com/photo-1555099962-4199c345e5dd?q=80&w=2070&auto=format&fit=crop",
   },
@@ -43,7 +43,7 @@ export const PERSONAL_WEBSITES: WebsiteLink[] = [
     demoUrl: "https://maenababneh.dev/",
     githubUrl: "https://github.com/MaenAbabneh/3d-portfolio",
     description:
-      "An interactive portfolio designed to make the work feel more memorable and easier to explore. It combines Next.js and Three.js for a modern, polished experience.",
+      "An interactive portfolio experience created to present work in a more memorable, premium, and engaging way.",
     image:
       "https://images.unsplash.com/photo-1555099962-4199c345e5dd?q=80&w=2070&auto=format&fit=crop",
   },
