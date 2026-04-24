@@ -34,6 +34,8 @@ import { useSoundStore } from "@/store/useSoundStore";
 import { useMediaStore } from "@/store/useMediaStore";
 import { useUISound } from "@/hooks/useUISounds";
 import { useSettingsStore } from "@/store/useSettingsStore";
+import { useNotificationStore } from "@/store/useNotificationStore";
+import { useDesktopStore } from "@/store/useDesktopStore";
 import { useTheme } from "next-themes";
 
 interface SettingsProps {
@@ -69,6 +71,10 @@ export default function Settings({ isDarkMode = true }: SettingsProps) {
   const setFontSize = useSettingsStore((s) => s.setFontSize);
   const highContrast = useSettingsStore((s) => s.highContrast);
   const setHighContrast = useSettingsStore((s) => s.setHighContrast);
+  const wifiEnabled = useSettingsStore((s) => s.wifiEnabled);
+  const toggleWifi = useSettingsStore((s) => s.toggleWifi);
+  const pushNotification = useNotificationStore((s) => s.pushNotification);
+  const openApp = useDesktopStore((s) => s.openApp);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -92,6 +98,19 @@ export default function Settings({ isDarkMode = true }: SettingsProps) {
   const hoverBg = isDarkMode ? "hover:bg-gray-700" : "hover:bg-gray-200";
   const secondaryText = isDarkMode ? "text-gray-400" : "text-gray-600";
   const subtleText = isDarkMode ? "text-gray-400" : "text-gray-500";
+  const connectedNetworkName = "Home-5G";
+  const wifiSecurity = "WPA3 Personal";
+  const wifiStandard = "Wi-Fi 6 (802.11ax)";
+  const wifiIpAddress = "192.168.1.24";
+  const wifiRouter = "192.168.1.1";
+  const wifiDns = "1.1.1.1, 8.8.8.8";
+  const wifiMacAddress = "AC:DE:48:2F:91:B7";
+  const wifiPrivateAddress = "On";
+  const wifiSignal = wifiEnabled ? "Excellent" : "Disconnected";
+  const wifiStatusLabel = wifiEnabled ? "Connected" : "Off";
+  const wifiStatusTone = wifiEnabled
+    ? "text-emerald-400 bg-emerald-500/15"
+    : "text-gray-400 bg-gray-500/15";
 
   const iconMap = {
     globe: Globe,
@@ -163,7 +182,8 @@ export default function Settings({ isDarkMode = true }: SettingsProps) {
     activeSection !== "general" &&
     activeSection !== "appearance" &&
     activeSection !== "sound" &&
-    activeSection !== "accessibility";
+    activeSection !== "accessibility" &&
+    activeSection !== "notifications";
 
   const isDarkTheme =
     (resolvedTheme ?? (isDarkMode ? "dark" : "light")) === "dark";
@@ -171,6 +191,41 @@ export default function Settings({ isDarkMode = true }: SettingsProps) {
   const handleThemeToggle = () => {
     const nextTheme = isDarkTheme ? "light" : "dark";
     setTheme(nextTheme);
+    playSwitchOn();
+  };
+
+  const openContactApp = () => {
+    openApp({
+      id: "contact",
+      title: "Let's Talk",
+      component: "Contact",
+      position: { x: 220, y: 120 },
+      size: { width: 860, height: 620 },
+    });
+  };
+
+  const handlePreviewNotification = () => {
+    pushNotification({
+      appName: "Let's Talk",
+      appIcon: "💬",
+      title: "ready to chat?",
+      message:
+        "I'm here to answer your questions and discuss potential opportunities. Feel free to reach out!",
+      action: {
+        label: "Open",
+        appId: "contact",
+      },
+    });
+    playSwitchOn();
+  };
+
+  const handleSnakeNotificationPreview = () => {
+    pushNotification({
+      appName: "Snake",
+      appIcon: "🐍",
+      title: "New High Score!",
+      message: "10 points",
+    });
     playSwitchOn();
   };
 
@@ -653,6 +708,187 @@ export default function Settings({ isDarkMode = true }: SettingsProps) {
                       />
                       <div className="w-11 h-6 bg-gray-500 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-500"></div>
                     </label>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {activeSection === "wifi" && (
+          <div>
+            <h2 className="text-2xl font-semibold mb-6">Wi-Fi</h2>
+
+            <div className="space-y-6">
+              <div className={`${cardBg} p-5 rounded-xl space-y-4`}>
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <div className="flex items-center gap-3">
+                      <h3 className="text-lg font-medium">Current Network</h3>
+                      <span
+                        className={`rounded-full px-2.5 py-1 text-xs font-medium ${wifiStatusTone}`}
+                      >
+                        {wifiStatusLabel}
+                      </span>
+                    </div>
+                    <p className={`mt-2 text-sm ${secondaryText}`}>
+                      {wifiEnabled
+                        ? "Connected and using the active wireless interface."
+                        : "Turn Wi-Fi on to discover nearby networks and restore connectivity."}
+                    </p>
+                  </div>
+
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={wifiEnabled}
+                      onChange={() => {
+                        toggleWifi();
+                        if (wifiEnabled) {
+                          playDisabled();
+                        } else {
+                          playSwitchOn();
+                        }
+                      }}
+                      className="sr-only peer"
+                    />
+                    <div className="w-11 h-6 bg-gray-500 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-500"></div>
+                  </label>
+                </div>
+
+                <div className="grid gap-3 text-sm md:grid-cols-2">
+                  <div className="flex items-start justify-between gap-3 rounded-lg bg-black/10 p-3">
+                    <span className={secondaryText}>Network Name</span>
+                    <span className="font-medium">
+                      {wifiEnabled ? connectedNetworkName : "Not connected"}
+                    </span>
+                  </div>
+                  <div className="flex items-start justify-between gap-3 rounded-lg bg-black/10 p-3">
+                    <span className={secondaryText}>Status</span>
+                    <span className="font-medium">{wifiStatusLabel}</span>
+                  </div>
+                  <div className="flex items-start justify-between gap-3 rounded-lg bg-black/10 p-3">
+                    <span className={secondaryText}>Security</span>
+                    <span className="font-medium">
+                      {wifiEnabled ? wifiSecurity : "Unavailable"}
+                    </span>
+                  </div>
+                  <div className="flex items-start justify-between gap-3 rounded-lg bg-black/10 p-3">
+                    <span className={secondaryText}>Signal</span>
+                    <span className="font-medium">{wifiSignal}</span>
+                  </div>
+                  <div className="flex items-start justify-between gap-3 rounded-lg bg-black/10 p-3 md:col-span-2">
+                    <span className={secondaryText}>PHY Mode</span>
+                    <span className="font-medium">
+                      {wifiEnabled ? wifiStandard : "No wireless link"}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div className={`${cardBg} p-5 rounded-xl space-y-4`}>
+                <h3 className="text-lg font-medium">TCP/IP</h3>
+                <div className="grid gap-3 text-sm md:grid-cols-2">
+                  <div className="flex items-start justify-between gap-3 rounded-lg bg-black/10 p-3">
+                    <span className={secondaryText}>IPv4 Address</span>
+                    <span className="font-medium">
+                      {wifiEnabled ? wifiIpAddress : "--"}
+                    </span>
+                  </div>
+                  <div className="flex items-start justify-between gap-3 rounded-lg bg-black/10 p-3">
+                    <span className={secondaryText}>Router</span>
+                    <span className="font-medium">
+                      {wifiEnabled ? wifiRouter : "--"}
+                    </span>
+                  </div>
+                  <div className="flex items-start justify-between gap-3 rounded-lg bg-black/10 p-3 md:col-span-2">
+                    <span className={secondaryText}>DNS Servers</span>
+                    <span className="text-right font-medium">
+                      {wifiEnabled ? wifiDns : "--"}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div className={`${cardBg} p-5 rounded-xl space-y-4`}>
+                <h3 className="text-lg font-medium">Hardware</h3>
+                <div className="grid gap-3 text-sm md:grid-cols-2">
+                  <div className="flex items-start justify-between gap-3 rounded-lg bg-black/10 p-3">
+                    <span className={secondaryText}>Wi-Fi Address</span>
+                    <span className="font-medium">{wifiMacAddress}</span>
+                  </div>
+                  <div className="flex items-start justify-between gap-3 rounded-lg bg-black/10 p-3">
+                    <span className={secondaryText}>Private Wi-Fi Address</span>
+                    <span className="font-medium">{wifiPrivateAddress}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {activeSection === "notifications" && (
+          <div>
+            <h2 className="text-2xl font-semibold mb-6">Notifications</h2>
+
+            <div className="space-y-6">
+              <div className={`${cardBg} p-5 rounded-xl space-y-3`}>
+                <h3 className="text-lg font-medium">Contact Alerts</h3>
+                <p className={`text-sm ${secondaryText}`}>
+                  Preview the same contact notification that appears after
+                  login.
+                </p>
+
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={handlePreviewNotification}
+                    className="rounded-md bg-blue-500 px-3 py-1.5 text-sm text-white hover:bg-blue-600"
+                  >
+                    Show Preview
+                  </button>
+                  <button
+                    type="button"
+                    onClick={openContactApp}
+                    className="rounded-md bg-gray-700 px-3 py-1.5 text-sm text-white hover:bg-gray-600"
+                  >
+                    Open Contact
+                  </button>
+                </div>
+              </div>
+
+              <div className={`${cardBg} p-5 rounded-xl space-y-3`}>
+                <h3 className="text-lg font-medium">Snake Alerts</h3>
+                <p className={`text-sm ${secondaryText}`}>
+                  Snake uses the same system notifications and fires one when
+                  you beat your saved high score.
+                </p>
+
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={handleSnakeNotificationPreview}
+                    className="rounded-md bg-emerald-500 px-3 py-1.5 text-sm text-white hover:bg-emerald-600"
+                  >
+                    Show Snake Preview
+                  </button>
+                </div>
+              </div>
+
+              <div className={`${cardBg} p-5 rounded-xl space-y-4`}>
+                <h3 className="text-lg font-medium">How It Works</h3>
+                <div className="grid gap-3 text-sm md:grid-cols-2">
+                  <div className="flex items-start justify-between gap-3 rounded-lg bg-black/10 p-3">
+                    <span className={secondaryText}>Login notification</span>
+                    <span className="font-medium">Enabled</span>
+                  </div>
+                  <div className="flex items-start justify-between gap-3 rounded-lg bg-black/10 p-3">
+                    <span className={secondaryText}>Action button</span>
+                    <span className="font-medium">Opens Contact</span>
+                  </div>
+                  <div className="flex items-start justify-between gap-3 rounded-lg bg-black/10 p-3">
+                    <span className={secondaryText}>Snake high score</span>
+                    <span className="font-medium">Enabled</span>
                   </div>
                 </div>
               </div>
