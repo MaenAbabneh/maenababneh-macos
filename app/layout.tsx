@@ -19,7 +19,7 @@ export const metadata: Metadata = {
     template: "%s | Maen Ababneh",
   },
   description:
-    "Interactive macOS-themed personal portfolio of Maen Ababneh. Explore my web development projects, skills in Next.js, React, and 3D animations.",
+    "A clear macOS-style portfolio for Maen Ababneh with project highlights, services, and an easy way to book a call.",
   keywords: [
     "Maen Ababneh",
     "معن عبابنة",
@@ -42,7 +42,7 @@ export const metadata: Metadata = {
     url: "https://macos.maenababneh.dev",
     title: "Maen Ababneh | Creative Web Developer",
     description:
-      "Interactive macOS-themed personal portfolio showcasing my web development projects and skills.",
+      "A clear macOS-style portfolio for Maen Ababneh with project highlights, services, and an easy way to book a call.",
     siteName: "Maen Ababneh Portfolio",
     images: [
       {
@@ -57,7 +57,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Maen Ababneh | Creative Web Developer",
     description:
-      "Interactive macOS-themed personal portfolio showcasing my web development projects and skills.",
+      "A clear macOS-style portfolio for Maen Ababneh with project highlights, services, and an easy way to book a call.",
     images: [
       "https://res.cloudinary.com/djy5oyivn/image/upload/q_auto/f_auto/v1775839278/macos-demo_ajjcda.png",
     ],
