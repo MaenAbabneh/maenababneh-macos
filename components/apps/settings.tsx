@@ -21,9 +21,9 @@ import {
 import { SETTINGS_SECTIONS } from "@/constants/settings-sections";
 import {
   GITHUB_URL,
-  MAIL_TO_URL,
-  RESUME_URL,
+  PHONE_URL,
   WEBSITE_URL,
+  CALENDLY_URL,
 } from "@/constants/media-links";
 import {
   WALLPAPERS,
@@ -305,9 +305,17 @@ export default function Settings({ isDarkMode = true }: SettingsProps) {
                     href={WEBSITE_URL}
                     target="_blank"
                     rel="noreferrer"
+                    className="rounded-md bg-gray-700 px-3 py-1.5 text-sm text-white hover:bg-gray-600"
+                  >
+                    See my work
+                  </a>
+                  <a
+                    href={CALENDLY_URL}
+                    target="_blank"
+                    rel="noreferrer"
                     className="rounded-md bg-blue-500 px-3 py-1.5 text-sm text-white hover:bg-blue-600"
                   >
-                    View Portfolio
+                    Book a call
                   </a>
                   <a
                     href={GITHUB_URL}
@@ -318,18 +326,10 @@ export default function Settings({ isDarkMode = true }: SettingsProps) {
                     GitHub
                   </a>
                   <a
-                    href={MAIL_TO_URL}
+                    href={PHONE_URL}
                     className="rounded-md bg-gray-700 px-3 py-1.5 text-sm text-white hover:bg-gray-600"
                   >
-                    Contact
-                  </a>
-                  <a
-                    href={RESUME_URL}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="rounded-md bg-gray-700 px-3 py-1.5 text-sm text-white hover:bg-gray-600"
-                  >
-                    Resume
+                    Call
                   </a>
                 </div>
               </div>
