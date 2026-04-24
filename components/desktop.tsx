@@ -112,7 +112,7 @@ export default function Desktop() {
   const rootRef = useRef<HTMLDivElement>(null);
   const desktopRef = useRef<HTMLDivElement>(null);
   const prefersReducedMotionRef = useRef(false);
-  const contactIntroShownRef = useRef(false);
+  const lastNotifiedIntroNonceRef = useRef(0);
   const [projects, setProjects] = useState<GitHubProjectSummary[]>([]);
   const [projectsLoaded, setProjectsLoaded] = useState(false);
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(
@@ -142,19 +142,13 @@ export default function Desktop() {
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    if (desktopIntroNonce <= desktopIntroLastPlayedNonce) return;
-    if (contactIntroShownRef.current) return;
-
-    const storageKey = "contact-intro-shown-v1";
-    if (window.sessionStorage.getItem(storageKey) === "1") {
-      contactIntroShownRef.current = true;
+    if (desktopIntroNonce <= 0) return;
+    if (lastNotifiedIntroNonceRef.current >= desktopIntroNonce) {
       return;
     }
 
-    contactIntroShownRef.current = true;
-    window.sessionStorage.setItem(storageKey, "1");
-
     const notificationTimer = window.setTimeout(() => {
+      lastNotifiedIntroNonceRef.current = desktopIntroNonce;
       pushNotification({
         appName: "Let's Talk",
         appIcon: "💬",
@@ -181,7 +175,7 @@ export default function Desktop() {
       window.clearTimeout(pulseOnTimer);
       window.clearTimeout(pulseOffTimer);
     };
-  }, [desktopIntroLastPlayedNonce, desktopIntroNonce, pushNotification]);
+  }, [desktopIntroNonce, pushNotification]);
 
   useEffect(() => {
     prefersReducedMotionRef.current =
