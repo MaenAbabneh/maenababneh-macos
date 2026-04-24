@@ -51,8 +51,9 @@ export default function Contact({ isDarkMode = true }: ContactProps) {
                 Let&apos;s talk about your next project
               </h2>
               <p className={`mt-3 max-w-xl text-sm leading-6 ${mutedText}`}>
-                If you need a website, a refresh, or something custom, book a
-                short call and I&apos;ll reply with the next clear step.
+                If you need a new website, a redesign, or a custom web
+                experience, book a short call and I&apos;ll help you figure out
+                the clearest next step.
               </p>
             </div>
           </div>
@@ -71,7 +72,7 @@ export default function Contact({ isDarkMode = true }: ContactProps) {
                     Book a call
                   </span>
                   <span className="block text-xs text-white/80">
-                    30 minutes
+                    Free 30-minute intro call
                   </span>
                 </span>
               </span>
@@ -85,7 +86,7 @@ export default function Contact({ isDarkMode = true }: ContactProps) {
               <span className="flex items-center gap-3">
                 <Phone className="h-5 w-5" />
                 <span>
-                  <span className="block text-sm font-semibold">Call me</span>
+                  <span className="block text-sm font-semibold">Call</span>
                   <span className={`block text-xs ${mutedText}`}>
                     {PHONE_NUMBER}
                   </span>
@@ -101,9 +102,9 @@ export default function Contact({ isDarkMode = true }: ContactProps) {
               <span className="flex items-center gap-3">
                 <Mail className="h-5 w-5" />
                 <span>
-                  <span className="block text-sm font-semibold">Email me</span>
+                  <span className="block text-sm font-semibold">Email</span>
                   <span className={`block text-xs ${mutedText}`}>
-                    hi@maenababneh.dev
+                    Send project details anytime
                   </span>
                 </span>
               </span>
@@ -117,9 +118,11 @@ export default function Contact({ isDarkMode = true }: ContactProps) {
               className={`${actionLinkClass} border ${panelBorder} ${panelBg} hover:bg-black/10`}
             >
               <span>
-                <span className="block text-sm font-semibold">See my work</span>
+                <span className="block text-sm font-semibold">
+                  View portfolio
+                </span>
                 <span className={`block text-xs ${mutedText}`}>
-                  Client-friendly portfolio
+                  Recent work and project examples
                 </span>
               </span>
               <ArrowUpRight className="h-4 w-4" />
