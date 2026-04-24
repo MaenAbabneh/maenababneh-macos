@@ -10,3 +10,4 @@ export * from "@/constants/game-config";
 export * from "@/constants/toast-config";
 export * from "@/constants/sidebar-config";
 export * from "@/constants/chart-config";
+export * from "@/constants/hire-me-config";
