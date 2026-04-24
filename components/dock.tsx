@@ -43,7 +43,11 @@ const getWindowPosition = (seed: string) => {
   };
 };
 
-export default function Dock() {
+type DockProps = {
+  pulseContact?: boolean;
+};
+
+export default function Dock({ pulseContact = false }: DockProps) {
   const { isDarkMode } = useIsDarkMode();
   const { playPop } = useUISound();
   const openWindows = useDesktopStore((s) => s.openWindows);
@@ -286,7 +290,7 @@ export default function Dock() {
                       height={56}
                       sizes="56px"
                       priority
-                      className={`object-contain ${isMobile ? "w-14 h-14" : "w-12 h-12"}`}
+                      className={`object-contain ${isMobile ? "w-14 h-14" : "w-12 h-12"} ${app.id === "contact" && pulseContact ? "animate-pulse" : ""}`}
                       draggable={false}
                       quality={90}
                     />
