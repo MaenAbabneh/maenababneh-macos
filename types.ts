@@ -24,8 +24,3 @@ export interface GitHubProjectSummary {
   coverImageUrl: string | null;
   source: "github" | "fallback";
 }
-
-export interface DesktopPosition {
-  x: number;
-  y: number;
-}
