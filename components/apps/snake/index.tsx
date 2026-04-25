@@ -14,54 +14,18 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SNAKE_CONFIG } from "@/constants/game-config";
-import {
-  useSnakeStore,
-  type Direction,
-  type Position,
-} from "@/store/useSnakeStore";
+import { useSnakeStoreSelectors } from "@/store/useSnakeStore";
 import { useUISound } from "@/hooks/useUISounds";
-import { useSettingsStore } from "@/store/useSettingsStore";
-import { useNotificationStore } from "@/store/useNotificationStore";
-
-interface SnakeProps {
-  isDarkMode?: boolean;
-}
-
-const SCORE_PER_FOOD = 10;
-const FOOD_BURST_PARTICLES = 9;
-
-const isOppositeDirection = (current: Direction, next: Direction) => {
-  return (
-    (current === "UP" && next === "DOWN") ||
-    (current === "DOWN" && next === "UP") ||
-    (current === "LEFT" && next === "RIGHT") ||
-    (current === "RIGHT" && next === "LEFT")
-  );
-};
-
-const wrapPosition = (value: number, max: number) => (value + max) % max;
-
-const drawRoundedRect = (
-  ctx: CanvasRenderingContext2D,
-  x: number,
-  y: number,
-  width: number,
-  height: number,
-  radius: number,
-) => {
-  const r = Math.min(radius, width / 2, height / 2);
-  ctx.beginPath();
-  ctx.moveTo(x + r, y);
-  ctx.lineTo(x + width - r, y);
-  ctx.quadraticCurveTo(x + width, y, x + width, y + r);
-  ctx.lineTo(x + width, y + height - r);
-  ctx.quadraticCurveTo(x + width, y + height, x + width - r, y + height);
-  ctx.lineTo(x + r, y + height);
-  ctx.quadraticCurveTo(x, y + height, x, y + height - r);
-  ctx.lineTo(x, y + r);
-  ctx.quadraticCurveTo(x, y, x + r, y);
-  ctx.closePath();
-};
+import { useSettingsStoreSelectors } from "@/store/useSettingsStore";
+import { useNotificationStoreSelectors } from "@/store/useNotificationStore";
+import type { SnakeProps, Position, Direction } from "@/types/apps/snake";
+import {
+  drawRoundedRect,
+  FOOD_BURST_PARTICLES,
+  isOppositeDirection,
+  SCORE_PER_FOOD,
+  wrapPosition,
+} from "./utils";
 
 export default function Snake({ isDarkMode = true }: SnakeProps) {
   const GRID_SIZE = SNAKE_CONFIG.gridSize;
@@ -72,32 +36,38 @@ export default function Snake({ isDarkMode = true }: SnakeProps) {
   const POINTS_PER_LEVEL = SNAKE_CONFIG.pointsPerLevel;
   const BODY_INSET = SNAKE_CONFIG.bodyInset;
 
-  const snake = useSnakeStore((s) => s.snake);
-  const food = useSnakeStore((s) => s.food);
-  const direction = useSnakeStore((s) => s.direction);
-  const queuedDirection = useSnakeStore((s) => s.queuedDirection);
-  const gameOver = useSnakeStore((s) => s.gameOver);
-  const isPaused = useSnakeStore((s) => s.isPaused);
-  const score = useSnakeStore((s) => s.score);
-  const highScore = useSnakeStore((s) => s.highScore);
-  const speedMs = useSnakeStore((s) => s.speedMs);
-  const didNotifyHighScore = useSnakeStore((s) => s.didNotifyHighScore);
+  // Snake state
+  const snake = useSnakeStoreSelectors.use.snake();
+  const food = useSnakeStoreSelectors.use.food();
+  const direction = useSnakeStoreSelectors.use.direction();
+  const queuedDirection = useSnakeStoreSelectors.use.queuedDirection();
+  const gameOver = useSnakeStoreSelectors.use.gameOver();
+  const isPaused = useSnakeStoreSelectors.use.isPaused();
+  const score = useSnakeStoreSelectors.use.score();
+  const highScore = useSnakeStoreSelectors.use.highScore();
+  const speedMs = useSnakeStoreSelectors.use.speedMs();
+  const didNotifyHighScore = useSnakeStoreSelectors.use.didNotifyHighScore();
+  const queueDirection = useSnakeStoreSelectors.use.queueDirection();
+  const setDirection = useSnakeStoreSelectors.use.setDirection();
+  const setSnake = useSnakeStoreSelectors.use.setSnake();
+  const setFood = useSnakeStoreSelectors.use.setFood();
+  const setGameOver = useSnakeStoreSelectors.use.setGameOver();
+  const setPaused = useSnakeStoreSelectors.use.setPaused();
+  const togglePaused = useSnakeStoreSelectors.use.togglePaused();
+  const setScore = useSnakeStoreSelectors.use.setScore();
+  const setHighScore = useSnakeStoreSelectors.use.setHighScore();
+  const setSpeedMs = useSnakeStoreSelectors.use.setSpeedMs();
+  const setDidNotifyHighScore =
+    useSnakeStoreSelectors.use.setDidNotifyHighScore();
+  const resetRun = useSnakeStoreSelectors.use.resetRun();
 
-  const queueDirection = useSnakeStore((s) => s.queueDirection);
-  const setDirection = useSnakeStore((s) => s.setDirection);
-  const setSnake = useSnakeStore((s) => s.setSnake);
-  const setFood = useSnakeStore((s) => s.setFood);
-  const setGameOver = useSnakeStore((s) => s.setGameOver);
-  const setPaused = useSnakeStore((s) => s.setPaused);
-  const togglePaused = useSnakeStore((s) => s.togglePaused);
-  const setScore = useSnakeStore((s) => s.setScore);
-  const setHighScore = useSnakeStore((s) => s.setHighScore);
-  const setSpeedMs = useSnakeStore((s) => s.setSpeedMs);
-  const setDidNotifyHighScore = useSnakeStore((s) => s.setDidNotifyHighScore);
-  const resetRun = useSnakeStore((s) => s.resetRun);
+  // Settings state
+  const reduceMotion = useSettingsStoreSelectors.use.reduceMotion();
 
-  const reduceMotion = useSettingsStore((s) => s.reduceMotion);
-  const pushNotification = useNotificationStore((s) => s.pushNotification);
+  // Notifications
+  const pushNotification = useNotificationStoreSelectors.use.pushNotification();
+
+  // Sounds
   const { playPop, playError } = useUISound();
 
   const canvasRef = useRef<HTMLCanvasElement>(null);

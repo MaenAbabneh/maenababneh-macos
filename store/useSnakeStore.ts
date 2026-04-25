@@ -3,43 +3,12 @@ import { createJSONStorage, persist } from "zustand/middleware";
 import { INITIAL_SNAKE } from "@/constants/game-config";
 import { STORAGE_KEYS } from "@/constants/storage-keys";
 import { noopStorage } from "@/store/noop-storage";
-
-export type Direction = "UP" | "DOWN" | "LEFT" | "RIGHT";
-export type Position = { x: number; y: number };
-
-type SnakeState = {
-  snake: Position[];
-  food: Position;
-  direction: Direction;
-  queuedDirection: Direction;
-  gameOver: boolean;
-  isPaused: boolean;
-  score: number;
-  highScore: number;
-  speedMs: number;
-  didNotifyHighScore: boolean;
-};
-
-type SnakeActions = {
-  queueDirection: (nextDirection: Direction) => void;
-  setDirection: (direction: Direction) => void;
-  setSnake: (snake: Position[]) => void;
-  setFood: (food: Position) => void;
-  setGameOver: (gameOver: boolean) => void;
-  setPaused: (isPaused: boolean) => void;
-  togglePaused: () => void;
-  setScore: (score: number) => void;
-  setHighScore: (highScore: number) => void;
-  setSpeedMs: (speedMs: number) => void;
-  setDidNotifyHighScore: (didNotifyHighScore: boolean) => void;
-  resetRun: (initialSpeed: number) => void;
-};
-
-export type SnakeStore = SnakeState & SnakeActions;
+import { SnakeStore, Position } from "@/types/apps/snake";
+import { createSelectors } from "./createSelectors";
 
 const initialFood: Position = { x: 5, y: 5 };
 
-export const useSnakeStore = create<SnakeStore>()(
+const useSnakeStore = create<SnakeStore>()(
   persist(
     (set, get) => ({
       snake: INITIAL_SNAKE,
@@ -90,3 +59,5 @@ export const useSnakeStore = create<SnakeStore>()(
     },
   ),
 );
+
+export const useSnakeStoreSelectors = createSelectors(useSnakeStore);
