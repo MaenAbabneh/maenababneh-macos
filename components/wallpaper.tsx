@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useIsDarkMode } from "@/hooks/use-is-dark-mode";
-import { useSettingsStore } from "@/store/useSettingsStore";
+import { useSettingsStoreSelectors } from "@/store/useSettingsStore";
 import { WALLPAPERS } from "@/constants/appearance-config";
 
 const isDataUri = (src: string) => src.startsWith("data:");
@@ -31,7 +31,9 @@ function WallpaperLayer({ src, visible }: { src: string; visible: boolean }) {
 
 export default function Wallpaper() {
   const { isDarkMode } = useIsDarkMode();
-  const wallpaperId = useSettingsStore((s) => s.wallpaperId);
+
+  // Settings state
+  const wallpaperId = useSettingsStoreSelectors.use.wallpaperId();
 
   const wallpaper = WALLPAPERS.find((w) => w.id === wallpaperId);
   const imageUrl = isDarkMode ? wallpaper?.darkSrc : wallpaper?.lightSrc;

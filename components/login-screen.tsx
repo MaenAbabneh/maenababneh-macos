@@ -8,14 +8,18 @@ import { Moon, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useUISound } from "@/hooks/useUISounds";
-import { useSystemStore } from "@/store/useSystemStore";
+import { useSystemStoreSelectors } from "@/store/useSystemStore";
 import { useTheme } from "next-themes";
-import { useSettingsStore } from "@/store/useSettingsStore";
+import { useSettingsStoreSelectors } from "@/store/useSettingsStore";
 import { WALLPAPERS } from "@/constants/appearance-config";
 
 export default function LoginScreen() {
-  const login = useSystemStore((s) => s.login);
-  const wallpaperId = useSettingsStore((s) => s.wallpaperId);
+  // System state
+  const login = useSystemStoreSelectors.use.login();
+
+  // Settings state
+  const wallpaperId = useSettingsStoreSelectors.use.wallpaperId();
+
   const { playStartup, playLogin } = useUISound();
   const { resolvedTheme, setTheme } = useTheme();
   const [hasMounted, setHasMounted] = useState(false);

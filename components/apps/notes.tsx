@@ -8,8 +8,8 @@ import { useGSAP } from "@gsap/react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
-import { useNotesStore } from "@/store/useNotesStore";
-import { useSettingsStore } from "@/store/useSettingsStore";
+import { useNotesStoreSelectors } from "@/store/useNotesStore";
+import { useSettingsStoreSelectors } from "@/store/useSettingsStore";
 
 interface NotesProps {
   isDarkMode?: boolean;
@@ -18,13 +18,15 @@ interface NotesProps {
 type ViewMode = "preview" | "edit";
 
 export default function Notes({ isDarkMode = true }: NotesProps) {
-  const notes = useNotesStore((s) => s.notes);
-  const selectedNoteId = useNotesStore((s) => s.selectedNoteId);
-  const selectNote = useNotesStore((s) => s.selectNote);
-  const updateSelectedNoteContent = useNotesStore(
-    (s) => s.updateSelectedNoteContent,
-  );
-  const reduceMotion = useSettingsStore((s) => s.reduceMotion);
+  // Notes state
+  const notes = useNotesStoreSelectors.use.notes();
+  const selectedNoteId = useNotesStoreSelectors.use.selectedNoteId();
+  const selectNote = useNotesStoreSelectors.use.selectNote();
+  const updateSelectedNoteContent =
+    useNotesStoreSelectors.use.updateSelectedNoteContent();
+
+  // Settings
+  const reduceMotion = useSettingsStoreSelectors.use.reduceMotion();
 
   const [viewMode, setViewMode] = useState<ViewMode>("preview");
   const prefersReducedMotionRef = useRef(false);
@@ -50,7 +52,8 @@ export default function Notes({ isDarkMode = true }: NotesProps) {
     if (typeof window === "undefined") return;
     prefersReducedMotionRef.current =
       (window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ??
-        false) || reduceMotion;
+        false) ||
+      reduceMotion;
   }, [reduceMotion]);
 
   useGSAP(

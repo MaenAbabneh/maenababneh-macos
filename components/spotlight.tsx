@@ -12,8 +12,8 @@ import {
   APP_WINDOW_DEFAULT_SIZE,
   APP_WINDOW_POSITION_RANGE,
 } from "@/constants/window-config";
-import { useDesktopStore } from "@/store/useDesktopStore";
-import { useSettingsStore } from "@/store/useSettingsStore";
+import { useDesktopStoreSelectors } from "@/store/useDesktopStore";
+import { useSettingsStoreSelectors } from "@/store/useSettingsStore";
 
 const hashString = (input: string) => {
   let hash = 0;
@@ -39,9 +39,12 @@ const getWindowPosition = (seed: string) => {
 };
 
 export default function Spotlight() {
-  const openApp = useDesktopStore((s) => s.openApp);
-  const setSpotlightOpen = useDesktopStore((s) => s.setSpotlightOpen);
-  const reduceMotion = useSettingsStore((s) => s.reduceMotion);
+  // Desktop state
+  const openApp = useDesktopStoreSelectors.use.openApp();
+  const setSpotlightOpen = useDesktopStoreSelectors.use.setSpotlightOpen();
+
+  // Settings state
+  const reduceMotion = useSettingsStoreSelectors.use.reduceMotion();
 
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -83,7 +86,8 @@ export default function Spotlight() {
 
     prefersReducedMotionRef.current =
       (window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ??
-        false) || reduceMotion;
+        false) ||
+      reduceMotion;
 
     // Handle escape key to close
     const handleKeyDown = (e: KeyboardEvent) => {

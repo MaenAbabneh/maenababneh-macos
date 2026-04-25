@@ -11,7 +11,7 @@ import {
   APP_WINDOW_DEFAULT_SIZE,
   APP_WINDOW_POSITION_RANGE,
 } from "@/constants/window-config";
-import { useDesktopStore } from "@/store/useDesktopStore";
+import { useDesktopStoreSelectors } from "@/store/useDesktopStore";
 
 const hashString = (input: string) => {
   let hash = 0;
@@ -38,8 +38,8 @@ const getWindowPosition = (seed: string) => {
 
 // Improve Launchpad appearance
 export default function Launchpad() {
-  const openApp = useDesktopStore((s) => s.openApp);
-  const setLaunchpadOpen = useDesktopStore((s) => s.setLaunchpadOpen);
+  const openApp = useDesktopStoreSelectors.use.openApp();
+  const setLaunchpadOpen = useDesktopStoreSelectors.use.setLaunchpadOpen();
 
   const [searchTerm, setSearchTerm] = useState("");
   const [isVisible, setIsVisible] = useState(true);

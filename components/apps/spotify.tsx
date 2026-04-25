@@ -16,23 +16,25 @@ import {
 } from "lucide-react";
 import { useIsDarkMode } from "@/hooks/use-is-dark-mode";
 import { useUISound } from "@/hooks/useUISounds";
-import { useMediaStore } from "@/store/useMediaStore";
+import { useMediaStoreSelectors } from "@/store/useMediaStore";
 import { SPOTIFY_PLAYLIST } from "@/constants/music-data";
 
 export default function Spotify() {
   const { isDarkMode } = useIsDarkMode();
   const { playDisabled } = useUISound();
 
-  const isPlaying = useMediaStore((s) => s.spotifyIsPlaying);
-  const setIsPlaying = useMediaStore((s) => s.setSpotifyIsPlaying);
-  const currentTrackIndex = useMediaStore((s) => s.spotifyTrackIndex);
-  const setCurrentTrackIndex = useMediaStore((s) => s.setSpotifyTrackIndex);
-  const volume = useMediaStore((s) => s.spotifyVolume);
-  const setVolume = useMediaStore((s) => s.setSpotifyVolume);
-  const isMuted = useMediaStore((s) => s.spotifyIsMuted);
-  const setIsMuted = useMediaStore((s) => s.setSpotifyIsMuted);
-  const toggleMute = useMediaStore((s) => s.toggleSpotifyMute);
-  const globalMusicMuted = useMediaStore((s) => s.globalMusicMuted);
+  // Media state
+  const isPlaying = useMediaStoreSelectors.use.spotifyIsPlaying();
+  const setIsPlaying = useMediaStoreSelectors.use.setSpotifyIsPlaying();
+  const currentTrackIndex = useMediaStoreSelectors.use.spotifyTrackIndex();
+  const setCurrentTrackIndex =
+    useMediaStoreSelectors.use.setSpotifyTrackIndex();
+  const volume = useMediaStoreSelectors.use.spotifyVolume();
+  const setVolume = useMediaStoreSelectors.use.setSpotifyVolume();
+  const isMuted = useMediaStoreSelectors.use.spotifyIsMuted();
+  const setIsMuted = useMediaStoreSelectors.use.setSpotifyIsMuted();
+  const toggleMute = useMediaStoreSelectors.use.toggleSpotifyMute();
+  const globalMusicMuted = useMediaStoreSelectors.use.globalMusicMuted();
 
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);

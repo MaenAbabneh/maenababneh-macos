@@ -2,14 +2,18 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AppleIcon } from "@/components/icons";
-import { useSettingsStore } from "@/store/useSettingsStore";
-import { useSystemStore } from "@/store/useSystemStore";
+import { useSettingsStoreSelectors } from "@/store/useSettingsStore";
+import { useSystemStoreSelectors } from "@/store/useSystemStore";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 
 export default function ShutdownScreen() {
-  const boot = useSystemStore((s) => s.boot);
-  const reduceMotion = useSettingsStore((s) => s.reduceMotion);
+  // System state
+  const boot = useSystemStoreSelectors.use.boot();
+
+  // Settings state
+  const reduceMotion = useSettingsStoreSelectors.use.reduceMotion();
+
   const [showBootText, setShowBootText] = useState(false);
 
   const rootRef = useRef<HTMLDivElement>(null);
@@ -19,7 +23,8 @@ export default function ShutdownScreen() {
   useEffect(() => {
     prefersReducedMotionRef.current =
       (window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ??
-        false) || reduceMotion;
+        false) ||
+      reduceMotion;
 
     // Show the "Click to boot" text after a delay
     const timer = setTimeout(() => {

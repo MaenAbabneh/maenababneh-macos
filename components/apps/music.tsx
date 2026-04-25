@@ -13,21 +13,24 @@ import Image from "next/image";
 import { Slider } from "@/components/ui/slider";
 import { MUSIC_PLAYLIST } from "@/constants/music-data";
 import { useUISound } from "@/hooks/useUISounds";
-import { useMediaStore } from "@/store/useMediaStore";
+import { useMediaStoreSelectors } from "@/store/useMediaStore";
 
 export default function Music() {
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
-  const isPlaying = useMediaStore((s) => s.musicIsPlaying);
-  const setIsPlaying = useMediaStore((s) => s.setMusicIsPlaying);
-  const currentTrackIndex = useMediaStore((s) => s.musicTrackIndex);
-  const setCurrentTrackIndex = useMediaStore((s) => s.setMusicTrackIndex);
-  const volume = useMediaStore((s) => s.musicVolume);
-  const setVolume = useMediaStore((s) => s.setMusicVolume);
-  const isMuted = useMediaStore((s) => s.musicIsMuted);
-  const setIsMuted = useMediaStore((s) => s.setMusicIsMuted);
-  const toggleMute = useMediaStore((s) => s.toggleMusicMute);
-  const globalMusicMuted = useMediaStore((s) => s.globalMusicMuted);
+
+  // Media state
+  const isPlaying = useMediaStoreSelectors.use.musicIsPlaying();
+  const setIsPlaying = useMediaStoreSelectors.use.setMusicIsPlaying();
+  const currentTrackIndex = useMediaStoreSelectors.use.musicTrackIndex();
+  const setCurrentTrackIndex = useMediaStoreSelectors.use.setMusicTrackIndex();
+  const volume = useMediaStoreSelectors.use.musicVolume();
+  const setVolume = useMediaStoreSelectors.use.setMusicVolume();
+  const isMuted = useMediaStoreSelectors.use.musicIsMuted();
+  const setIsMuted = useMediaStoreSelectors.use.setMusicIsMuted();
+  const toggleMute = useMediaStoreSelectors.use.toggleMusicMute();
+  const globalMusicMuted = useMediaStoreSelectors.use.globalMusicMuted();
+
   const { playDisabled } = useUISound();
 
   const audioRef = useRef<HTMLAudioElement>(null);

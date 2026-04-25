@@ -13,8 +13,8 @@ import {
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { CONTROL_CENTER_CONFIG } from "@/constants/ui-config";
-import { useSettingsStore } from "@/store/useSettingsStore";
-import { useMediaStore } from "@/store/useMediaStore";
+import { useSettingsStoreSelectors } from "@/store/useSettingsStore";
+import { useMediaStoreSelectors } from "@/store/useMediaStore";
 import { useIsDarkMode } from "@/hooks/use-is-dark-mode";
 import { useUISound } from "@/hooks/useUISounds";
 import { useTheme } from "next-themes";
@@ -23,17 +23,20 @@ export default function ControlCenter() {
   const { setTheme } = useTheme();
   const { playSwitchOn, playSwitchOff } = useUISound();
 
-  const wifiEnabled = useSettingsStore((s) => s.wifiEnabled);
-  const toggleWifi = useSettingsStore((s) => s.toggleWifi);
-  const bluetoothEnabled = useSettingsStore((s) => s.bluetoothEnabled);
-  const toggleBluetooth = useSettingsStore((s) => s.toggleBluetooth);
-  const brightness = useSettingsStore((s) => s.screenBrightness);
-  const setBrightness = useSettingsStore((s) => s.setBrightness);
-  const volume = useSettingsStore((s) => s.volume);
-  const setVolume = useSettingsStore((s) => s.setVolume);
-  const reduceMotion = useSettingsStore((s) => s.reduceMotion);
-  const globalMusicMuted = useMediaStore((s) => s.globalMusicMuted);
-  const setGlobalMusicMuted = useMediaStore((s) => s.setGlobalMusicMuted);
+  // Settings state
+  const wifiEnabled = useSettingsStoreSelectors.use.wifiEnabled();
+  const toggleWifi = useSettingsStoreSelectors.use.toggleWifi();
+  const bluetoothEnabled = useSettingsStoreSelectors.use.bluetoothEnabled();
+  const toggleBluetooth = useSettingsStoreSelectors.use.toggleBluetooth();
+  const brightness = useSettingsStoreSelectors.use.screenBrightness();
+  const setBrightness = useSettingsStoreSelectors.use.setBrightness();
+  const volume = useSettingsStoreSelectors.use.volume();
+  const setVolume = useSettingsStoreSelectors.use.setVolume();
+  const reduceMotion = useSettingsStoreSelectors.use.reduceMotion();
+
+  // Media state
+  const globalMusicMuted = useMediaStoreSelectors.use.globalMusicMuted();
+  const setGlobalMusicMuted = useMediaStoreSelectors.use.setGlobalMusicMuted();
 
   const panelRef = useRef<HTMLDivElement>(null);
   const gridRef = useRef<HTMLDivElement>(null);
