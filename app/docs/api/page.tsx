@@ -1,6 +1,7 @@
 export const metadata = {
   title: "API Documentation",
-  description: "API discovery and integration references for this portfolio site.",
+  description:
+    "API discovery and integration references for this portfolio site.",
 };
 
 const API_BASE = "https://macos.maenababneh.dev";

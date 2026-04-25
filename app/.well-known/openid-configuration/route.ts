@@ -10,7 +10,11 @@ const OPENID_CONFIGURATION = {
   response_types_supported: ["code"],
   subject_types_supported: ["public"],
   id_token_signing_alg_values_supported: ["RS256"],
-  grant_types_supported: ["authorization_code", "client_credentials", "refresh_token"],
+  grant_types_supported: [
+    "authorization_code",
+    "client_credentials",
+    "refresh_token",
+  ],
   scopes_supported: ["openid", "profile", "projects:read"],
 };
 
