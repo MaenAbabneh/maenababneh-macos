@@ -34,3 +34,6 @@ next-env.d.ts
 
 # .codex
 .codex
+
+# FrameRef cache directory
+/.frameref
