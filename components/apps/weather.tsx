@@ -33,226 +33,13 @@ import {
 } from "@/lib/weather-service";
 import { useWeatherStore } from "@/store/useWeatherStore";
 import { useSettingsStore } from "@/store/useSettingsStore";
-
-interface WeatherProps {
-  isDarkMode?: boolean;
-}
-
-interface Particle {
-  x: number;
-  y: number;
-  size: number;
-  speedX: number;
-  speedY: number;
-  opacity: number;
-  color: string;
-  drift?: number;
-}
-
-const parseClockLabelToMinutes = (timeLabel: string) => {
-  const match = timeLabel.trim().match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
-  if (!match) return null;
-
-  const rawHour = Number.parseInt(match[1], 10);
-  const minute = Number.parseInt(match[2], 10);
-  const period = match[3].toUpperCase();
-
-  if (!Number.isFinite(rawHour) || !Number.isFinite(minute)) return null;
-
-  const normalizedHour = rawHour % 12;
-  const hour24 = period === "PM" ? normalizedHour + 12 : normalizedHour;
-  return hour24 * 60 + minute;
-};
-
-const getFallbackDaytime = (sunrise: string, sunset: string) => {
-  const sunriseMinutes = parseClockLabelToMinutes(sunrise);
-  const sunsetMinutes = parseClockLabelToMinutes(sunset);
-  if (sunriseMinutes === null || sunsetMinutes === null) {
-    const hour = new Date().getHours();
-    return hour >= 6 && hour < 18;
-  }
-
-  const now = new Date();
-  const currentMinutes = now.getHours() * 60 + now.getMinutes();
-  return currentMinutes >= sunriseMinutes && currentMinutes < sunsetMinutes;
-};
-
-const NIGHT_STARS = [
-  { x: 0.08, y: 0.08, size: 1.4 },
-  { x: 0.14, y: 0.15, size: 1.2 },
-  { x: 0.22, y: 0.07, size: 1.8 },
-  { x: 0.28, y: 0.17, size: 1.3 },
-  { x: 0.34, y: 0.1, size: 1.5 },
-  { x: 0.42, y: 0.18, size: 1.1 },
-  { x: 0.5, y: 0.08, size: 1.6 },
-  { x: 0.58, y: 0.16, size: 1.2 },
-  { x: 0.66, y: 0.09, size: 1.4 },
-  { x: 0.74, y: 0.17, size: 1.2 },
-  { x: 0.82, y: 0.07, size: 1.7 },
-  { x: 0.9, y: 0.14, size: 1.3 },
-];
-
-const drawSunOrMoon = (
-  ctx: CanvasRenderingContext2D,
-  width: number,
-  height: number,
-  dayProgress: number,
-  targetCondition: WeatherCondition,
-  rotationDeg: number,
-  scale: number,
-) => {
-  const clampedProgress = Math.min(1, Math.max(0, dayProgress));
-  const sunAlpha = clampedProgress;
-  const moonAlpha = 1 - clampedProgress;
-
-  const centerX = width * 0.16 + moonAlpha * width * 0.02;
-  const centerY = height * 0.2;
-
-  if (sunAlpha > 0.02) {
-    ctx.save();
-    ctx.globalAlpha = sunAlpha;
-    ctx.translate(centerX, centerY);
-    ctx.rotate((rotationDeg * Math.PI) / 180);
-    ctx.scale(scale, scale);
-    ctx.translate(-centerX, -centerY);
-    const sunRadius =
-      targetCondition === "sunny" ? width * 0.06 : width * 0.045;
-
-    const glow = ctx.createRadialGradient(
-      centerX,
-      centerY,
-      sunRadius * 0.4,
-      centerX,
-      centerY,
-      sunRadius * 2.6,
-    );
-    glow.addColorStop(0, "rgba(255, 220, 120, 0.55)");
-    glow.addColorStop(1, "rgba(255, 220, 120, 0)");
-
-    ctx.fillStyle = glow;
-    ctx.beginPath();
-    ctx.arc(centerX, centerY, sunRadius * 2.6, 0, Math.PI * 2);
-    ctx.fill();
-
-    if (targetCondition === "sunny") {
-      ctx.strokeStyle = "rgba(255, 214, 112, 0.45)";
-      ctx.lineWidth = 2;
-      for (let i = 0; i < 10; i++) {
-        const angle = (Math.PI * 2 * i) / 10;
-        const rayStart = sunRadius * 1.22;
-        const rayEnd = sunRadius * 1.85;
-        ctx.beginPath();
-        ctx.moveTo(
-          centerX + Math.cos(angle) * rayStart,
-          centerY + Math.sin(angle) * rayStart,
-        );
-        ctx.lineTo(
-          centerX + Math.cos(angle) * rayEnd,
-          centerY + Math.sin(angle) * rayEnd,
-        );
-        ctx.stroke();
-      }
-    }
-
-    ctx.fillStyle = "rgba(255, 226, 140, 0.95)";
-    ctx.beginPath();
-    ctx.arc(centerX, centerY, sunRadius, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.restore();
-  }
-
-  if (moonAlpha < 0.02) return;
-
-  ctx.save();
-  ctx.globalAlpha = moonAlpha;
-  ctx.translate(centerX, centerY);
-  ctx.rotate((rotationDeg * Math.PI) / 180);
-  ctx.scale(scale, scale);
-  ctx.translate(-centerX, -centerY);
-
-  const moonRadius = width * 0.05;
-  const halo = ctx.createRadialGradient(
-    centerX,
-    centerY,
-    moonRadius * 0.3,
-    centerX,
-    centerY,
-    moonRadius * 2.1,
-  );
-  halo.addColorStop(0, "rgba(180, 200, 255, 0.35)");
-  halo.addColorStop(1, "rgba(180, 200, 255, 0)");
-
-  ctx.fillStyle = halo;
-  ctx.beginPath();
-  ctx.arc(centerX, centerY, moonRadius * 2.1, 0, Math.PI * 2);
-  ctx.fill();
-
-  ctx.fillStyle = "rgba(225, 232, 255, 0.92)";
-  ctx.beginPath();
-  ctx.arc(centerX, centerY, moonRadius, 0, Math.PI * 2);
-  ctx.fill();
-
-  ctx.fillStyle = "rgba(35, 45, 80, 0.55)";
-  ctx.beginPath();
-  ctx.arc(
-    centerX + moonRadius * 0.4,
-    centerY - moonRadius * 0.15,
-    moonRadius * 0.85,
-    0,
-    Math.PI * 2,
-  );
-  ctx.fill();
-
-  if (targetCondition !== "cloudy" && targetCondition !== "rainy") {
-    for (const star of NIGHT_STARS) {
-      ctx.fillStyle = "rgba(230, 240, 255, 0.6)";
-      ctx.beginPath();
-      ctx.arc(width * star.x, height * star.y, star.size, 0, Math.PI * 2);
-      ctx.fill();
-    }
-  }
-
-  ctx.restore();
-};
-
-const celsiusToFahrenheit = (value: number) => Math.round((value * 9) / 5 + 32);
-const fahrenheitToCelsius = (value: number) =>
-  Math.round(((value - 32) * 5) / 9);
-const kmhToMph = (value: number) => Math.round(value / 1.60934);
-const mphToKmh = (value: number) => Math.round(value * 1.60934);
-
-const convertWeatherUnit = (
-  data: WeatherCityData,
-  fromUnit: "metric" | "imperial",
-  toUnit: "metric" | "imperial",
-): WeatherCityData => {
-  if (fromUnit === toUnit) return data;
-
-  const tempConverter =
-    toUnit === "imperial" ? celsiusToFahrenheit : fahrenheitToCelsius;
-  const windConverter = toUnit === "imperial" ? kmhToMph : mphToKmh;
-
-  return {
-    current: {
-      ...data.current,
-      temp: tempConverter(data.current.temp),
-      feelsLike: tempConverter(data.current.feelsLike),
-      windSpeed: windConverter(data.current.windSpeed),
-    },
-    forecast: data.forecast.map((day) => ({
-      ...day,
-      temp: tempConverter(day.temp),
-      highTemp:
-        typeof day.highTemp === "number"
-          ? tempConverter(day.highTemp)
-          : undefined,
-      lowTemp:
-        typeof day.lowTemp === "number"
-          ? tempConverter(day.lowTemp)
-          : undefined,
-    })),
-  };
-};
+import type { WeatherProps, Particle } from "@/types/apps/weather";
+import {
+  getFallbackDaytime,
+  convertWeatherUnit,
+} from "@/lib/weather/conversions";
+import { drawSunOrMoon } from "@/lib/weather/canvas";
+import { initParticles, updateParticles } from "@/lib/weather/particles";
 
 export default function Weather({ isDarkMode = true }: WeatherProps) {
   const selectedCity = useWeatherStore((state) => state.selectedCity);
@@ -377,199 +164,6 @@ export default function Weather({ isDarkMode = true }: WeatherProps) {
     );
   }, [isDaytime]);
 
-  const initParticles = useCallback(
-    (targetCondition: WeatherCondition) => {
-      particles.current = [];
-
-      const count =
-        targetCondition === "rainy"
-          ? 90
-          : targetCondition === "snowy"
-            ? 72
-            : targetCondition === "sunny"
-              ? 42
-              : 20;
-
-      for (let i = 0; i < count; i++) {
-        let particle: Particle;
-
-        if (targetCondition === "rainy") {
-          particle = {
-            x: Math.random() * 100,
-            y: Math.random() * 100,
-            size: Math.random() * 2 + 1,
-            speedX: Math.random() * 0.45 - 0.225,
-            speedY: Math.random() * 3.6 + 4.8,
-            opacity: Math.random() * 0.4 + 0.45,
-            color: isDarkMode
-              ? "rgba(120, 160, 255, 0.8)"
-              : "rgba(0, 90, 190, 0.6)",
-          };
-        } else if (targetCondition === "snowy") {
-          particle = {
-            x: Math.random() * 100,
-            y: Math.random() * 100,
-            size: Math.random() * 3 + 2,
-            speedX: Math.random() * 0.55 - 0.275,
-            speedY: Math.random() * 0.8 + 0.65,
-            opacity: Math.random() * 0.3 + 0.7,
-            color: "rgba(255, 255, 255, 0.8)",
-            drift: Math.random() * 0.75 + 0.25,
-          };
-        } else if (targetCondition === "sunny") {
-          particle = {
-            x: Math.random() * 100,
-            y: Math.random() * 100,
-            size: Math.random() * 4 + 1,
-            speedX: (Math.random() - 0.5) * 0.22,
-            speedY: (Math.random() - 0.5) * 0.22,
-            opacity: Math.random() * 0.5 + 0.3,
-            color: isDarkMode
-              ? `rgba(${255}, ${200 + Math.random() * 55}, ${0}, ${Math.random() * 0.5 + 0.3})`
-              : `rgba(${255}, ${200 + Math.random() * 55}, ${0}, ${Math.random() * 0.7 + 0.3})`,
-          };
-        } else {
-          // Clouds
-          particle = {
-            x: Math.random() * 100,
-            y: Math.random() * 35 + 8,
-            size: Math.random() * 26 + 24,
-            speedX: Math.random() * 0.065 + 0.02,
-            speedY: 0,
-            opacity: Math.random() * 0.2 + 0.18,
-            color: isDarkMode
-              ? "rgba(200, 200, 220, 0.3)"
-              : "rgba(255, 255, 255, 0.7)",
-          };
-        }
-
-        particles.current.push(particle);
-      }
-    },
-    [isDarkMode],
-  );
-
-  const updateParticles = useCallback(
-    (ctx: CanvasRenderingContext2D, width: number, height: number) => {
-      particles.current.forEach((p) => {
-        // Convert percentage to actual position
-        const x = (p.x / 100) * width;
-        const y = (p.y / 100) * height;
-
-        // Draw particle
-        ctx.beginPath();
-
-        if (condition === "rainy") {
-          // Draw raindrops
-          ctx.strokeStyle = p.color;
-          ctx.lineWidth = p.size / 2;
-          ctx.lineCap = "round";
-          ctx.moveTo(x, y);
-          ctx.lineTo(x + p.speedX * 1.25, y + p.size * 3.2);
-          ctx.stroke();
-        } else if (condition === "snowy") {
-          // Draw snowflakes
-          ctx.strokeStyle = p.color;
-          ctx.lineWidth = Math.max(1, p.size * 0.22);
-          ctx.beginPath();
-          ctx.moveTo(x - p.size, y);
-          ctx.lineTo(x + p.size, y);
-          ctx.moveTo(x, y - p.size);
-          ctx.lineTo(x, y + p.size);
-          ctx.moveTo(x - p.size * 0.72, y - p.size * 0.72);
-          ctx.lineTo(x + p.size * 0.72, y + p.size * 0.72);
-          ctx.moveTo(x - p.size * 0.72, y + p.size * 0.72);
-          ctx.lineTo(x + p.size * 0.72, y - p.size * 0.72);
-          ctx.stroke();
-        } else if (condition === "sunny") {
-          // Draw sun particles
-          ctx.fillStyle = p.color;
-          ctx.shadowColor = "rgba(255, 200, 80, 0.55)";
-          ctx.shadowBlur = p.size * 2.2;
-          ctx.arc(x, y, p.size, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.shadowBlur = 0;
-        } else {
-          // Draw clouds
-          ctx.fillStyle = p.color;
-          ctx.beginPath();
-          ctx.ellipse(
-            x,
-            y + p.size * 0.12,
-            p.size * 0.9,
-            p.size * 0.55,
-            0,
-            0,
-            Math.PI * 2,
-          );
-          ctx.ellipse(
-            x - p.size * 0.5,
-            y,
-            p.size * 0.48,
-            p.size * 0.42,
-            0,
-            0,
-            Math.PI * 2,
-          );
-          ctx.ellipse(
-            x + p.size * 0.52,
-            y - p.size * 0.05,
-            p.size * 0.52,
-            p.size * 0.44,
-            0,
-            0,
-            Math.PI * 2,
-          );
-          ctx.ellipse(
-            x,
-            y - p.size * 0.28,
-            p.size * 0.55,
-            p.size * 0.48,
-            0,
-            0,
-            Math.PI * 2,
-          );
-          ctx.fill();
-        }
-
-        // Update position
-        p.x += p.speedX * 0.07;
-        p.y += p.speedY * 0.07;
-
-        // Reset position if out of bounds
-        if (condition === "rainy") {
-          if (p.y > 100) {
-            p.y = 0;
-            p.x = Math.random() * 100;
-          }
-          if (p.x < 0 || p.x > 100) {
-            p.x = Math.random() * 100;
-          }
-        } else if (condition === "snowy") {
-          p.x += Math.sin((p.y + p.size) * 0.06) * (p.drift ?? 0.3) * 0.03;
-          if (p.y > 100) {
-            p.y = 0;
-            p.x = Math.random() * 100;
-          }
-          if (p.x < 0 || p.x > 100) {
-            p.x = Math.random() * 100;
-          }
-        } else if (condition === "sunny") {
-          // Keep sun particles within bounds
-          if (p.x < 0) p.x = 100;
-          if (p.x > 100) p.x = 0;
-          if (p.y < 0) p.y = 100;
-          if (p.y > 100) p.y = 0;
-        } else {
-          // Cloud movement
-          if (p.x < -45) p.x = 140;
-          if (p.x > 140) p.x = -45;
-        }
-      });
-    },
-    [condition],
-  );
-
   // Initialize particles and animation
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -578,7 +172,6 @@ export default function Weather({ isDarkMode = true }: WeatherProps) {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    // Set canvas size
     const resizeCanvas = () => {
       const parent = canvas.parentElement;
       if (parent) {
@@ -590,17 +183,13 @@ export default function Weather({ isDarkMode = true }: WeatherProps) {
     resizeCanvas();
     window.addEventListener("resize", resizeCanvas);
 
-    // Initialize particles based on condition
-    initParticles(condition);
+    particles.current = initParticles(condition, isDarkMode);
 
-    // Start animation
     const animate = () => {
       if (!canvas || !ctx) return;
 
-      // Clear canvas
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      // Draw main day/night celestial body before weather particles
       drawSunOrMoon(
         ctx,
         canvas.width,
@@ -611,10 +200,14 @@ export default function Weather({ isDarkMode = true }: WeatherProps) {
         celestialMotionRef.current.scale,
       );
 
-      // Update and draw particles
-      updateParticles(ctx, canvas.width, canvas.height);
+      updateParticles(
+        particles.current,
+        ctx,
+        canvas.width,
+        canvas.height,
+        condition,
+      );
 
-      // Continue animation
       animationRef.current = requestAnimationFrame(animate);
     };
 
@@ -626,7 +219,7 @@ export default function Weather({ isDarkMode = true }: WeatherProps) {
         cancelAnimationFrame(animationRef.current);
       }
     };
-  }, [condition, initParticles, isDaytime, updateParticles]);
+  }, [condition, isDarkMode]);
 
   useGSAP(
     () => {
