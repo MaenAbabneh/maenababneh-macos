@@ -128,7 +128,7 @@ Persisting window position/size improves the “desktop OS” feel and removes d
   - Screens no longer require state props.
 
 ### Desktop Shell
-- File: `components/desktop.tsx`
+- File: `components/desktop/index.tsx`
   - Reads windows/overlays directly from the desktop store.
 
 ### Menubar & Control Center

@@ -95,7 +95,7 @@ See [docs/primary-changes.md](docs/primary-changes.md) for a summary of the prim
 Edit the following files to customize your portfolio:
 
 - `components/apps/notes.tsx` - Your bio and personal information
-- `components/apps/terminal.tsx` - Custom terminal commands and responses
+- `components/apps/terminal/` - Custom terminal commands, output content, and behavior
 
 ### Social Links
 
