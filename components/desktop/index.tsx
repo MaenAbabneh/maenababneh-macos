@@ -16,59 +16,21 @@ import Spotlight from "@/components/spotlight";
 import SystemNotifications from "@/components/system-notifications";
 import QuickContactWidget from "@/components/quick-contact-widget";
 import ProjectFolder from "@/components/project-folder";
-import { PERSONAL_WEBSITES } from "@/constants/media-links";
-import { useDesktopStore } from "@/store/useDesktopStore";
-import { useSettingsStore } from "@/store/useSettingsStore";
-import { useSystemStore } from "@/store/useSystemStore";
+import { useDesktopStoreSelectors } from "@/store/useDesktopStore";
+import { useSettingsStoreSelectors } from "@/store/useSettingsStore";
+import { useSystemStoreSelectors } from "@/store/useSystemStore";
 import { useUISound } from "@/hooks/useUISounds";
 import { useIsDarkMode } from "@/hooks/use-is-dark-mode";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { UI_MOBILE_BREAKPOINT } from "@/constants/ui-config";
-import { useNotificationStore } from "@/store/useNotificationStore";
-import type { DesktopPosition, GitHubProjectSummary } from "@/types";
-
-type ProjectsApiResponse = {
-  projects: GitHubProjectSummary[];
-  source: "github" | "fallback" | "error";
-  message?: string;
-};
-
-const getInitialProjectPosition = (index: number) => {
-  const columns =
-    typeof window === "undefined"
-      ? 4
-      : window.innerWidth < 1100
-        ? 3
-        : window.innerWidth < 1500
-          ? 4
-          : 5;
-  const column = index % columns;
-  const row = Math.floor(index / columns);
-
-  return {
-    x: 56 + column * 160,
-    y: 92 + row * 138,
-  };
-};
-
-const fallbackProjects = (): GitHubProjectSummary[] =>
-  PERSONAL_WEBSITES.map((site, index) => ({
-    id: `fallback-${index}-${site.title.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`,
-    name: site.title,
-    nameWithOwner: site.githubUrl.replace("https://github.com/", ""),
-    description: site.description,
-    url: site.githubUrl,
-    homepageUrl: site.demoUrl,
-    primaryLanguage: {
-      name: "Project",
-      color: "#facc15",
-    },
-    stargazerCount: 0,
-    updatedAt: new Date().toISOString(),
-    readmePreview: site.description,
-    coverImageUrl: site.image,
-    source: "fallback",
-  }));
+import { useNotificationStoreSelectors } from "@/store/useNotificationStore";
+import type { GitHubProjectSummary } from "@/types";
+import type { DesktopPosition } from "@/types/components/desktop";
+import {
+  fallbackProjects,
+  getInitialProjectPosition,
+  type ProjectsApiResponse,
+} from "./utils";
 
 export default function Desktop() {
   const [time, setTime] = useState(new Date());
@@ -76,39 +38,43 @@ export default function Desktop() {
   const isMobile = useIsMobile();
   const [pulseContact, setPulseContact] = useState(false);
 
-  const desktopIntroNonce = useSystemStore((s) => s.desktopIntroNonce);
-  const desktopIntroLastPlayedNonce = useSystemStore(
-    (s) => s.desktopIntroLastPlayedNonce,
-  );
-  const markDesktopIntroPlayed = useSystemStore(
-    (s) => s.markDesktopIntroPlayed,
-  );
+  // System state
+  const desktopIntroNonce = useSystemStoreSelectors.use.desktopIntroNonce();
+  const desktopIntroLastPlayedNonce =
+    useSystemStoreSelectors.use.desktopIntroLastPlayedNonce();
+  const markDesktopIntroPlayed =
+    useSystemStoreSelectors.use.markDesktopIntroPlayed();
 
-  const openWindows = useDesktopStore((s) => s.openWindows);
-  const activeWindowId = useDesktopStore((s) => s.activeWindowId);
-  const showLaunchpad = useDesktopStore((s) => s.showLaunchpad);
-  const showControlCenter = useDesktopStore((s) => s.showControlCenter);
-  const showSpotlight = useDesktopStore((s) => s.showSpotlight);
-  const toggleSpotlight = useDesktopStore((s) => s.toggleSpotlight);
-  const desktopBackgroundClick = useDesktopStore(
-    (s) => s.desktopBackgroundClick,
-  );
-  const openApp = useDesktopStore((s) => s.openApp);
-  const projectFolderPositions = useDesktopStore(
-    (s) => s.projectFolderPositions,
-  );
-  const setProjectFolderPosition = useDesktopStore(
-    (s) => s.setProjectFolderPosition,
-  );
-  const contactFolderPosition = useDesktopStore((s) => s.contactFolderPosition);
-  const setContactFolderPosition = useDesktopStore(
-    (s) => s.setContactFolderPosition,
-  );
+  // Desktop state
+  const openWindows = useDesktopStoreSelectors.use.openWindows();
+  const activeWindowId = useDesktopStoreSelectors.use.activeWindowId();
+  const showLaunchpad = useDesktopStoreSelectors.use.showLaunchpad();
+  const showControlCenter = useDesktopStoreSelectors.use.showControlCenter();
+  const showSpotlight = useDesktopStoreSelectors.use.showSpotlight();
+  const toggleSpotlight = useDesktopStoreSelectors.use.toggleSpotlight();
+  const desktopBackgroundClick =
+    useDesktopStoreSelectors.use.desktopBackgroundClick();
+  const openApp = useDesktopStoreSelectors.use.openApp();
+  const projectFolderPositions =
+    useDesktopStoreSelectors.use.projectFolderPositions();
+  const setProjectFolderPosition =
+    useDesktopStoreSelectors.use.setProjectFolderPosition();
+  const contactFolderPosition =
+    useDesktopStoreSelectors.use.contactFolderPosition();
+  const setContactFolderPosition =
+    useDesktopStoreSelectors.use.setContactFolderPosition();
 
-  const screenBrightness = useSettingsStore((s) => s.screenBrightness);
-  const reduceMotion = useSettingsStore((s) => s.reduceMotion);
+  // Settings state
+  const screenBrightness = useSettingsStoreSelectors.use.screenBrightness();
+  const reduceMotion = useSettingsStoreSelectors.use.reduceMotion();
+
+  // Theme
   const { isDarkMode } = useIsDarkMode();
-  const pushNotification = useNotificationStore((s) => s.pushNotification);
+
+  // Notifications
+  const pushNotification = useNotificationStoreSelectors.use.pushNotification();
+
+  // Refs and other state
   const rootRef = useRef<HTMLDivElement>(null);
   const desktopRef = useRef<HTMLDivElement>(null);
   const prefersReducedMotionRef = useRef(false);
