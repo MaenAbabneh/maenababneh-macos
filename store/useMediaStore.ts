@@ -3,6 +3,7 @@ import { createJSONStorage, persist } from "zustand/middleware";
 import { STORAGE_KEYS } from "@/constants/storage-keys";
 import { noopStorage } from "@/store/noop-storage";
 import { MUSIC_CONFIG } from "@/constants/ui-config";
+import { createSelectors } from "./createSelectors";
 
 type MediaState = {
   musicIsPlaying: boolean;
@@ -34,7 +35,7 @@ type MediaActions = {
 
 export type MediaStore = MediaState & MediaActions;
 
-export const useMediaStore = create<MediaStore>()(
+const useMediaStore = create<MediaStore>()(
   persist(
     (set, get) => ({
       musicIsPlaying: false,
@@ -78,3 +79,5 @@ export const useMediaStore = create<MediaStore>()(
     },
   ),
 );
+
+export const useMediaStoreSelectors = createSelectors(useMediaStore);

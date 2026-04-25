@@ -4,6 +4,7 @@ import { STORAGE_KEYS } from "@/constants/storage-keys";
 import { noopStorage } from "@/store/noop-storage";
 import { CONTROL_CENTER_CONFIG } from "@/constants/ui-config";
 import type { WallpaperId, AccentColorId } from "@/constants/appearance-config";
+import { createSelectors } from "./createSelectors";
 
 type SettingsState = {
   screenBrightness: number;
@@ -48,7 +49,7 @@ const getInitialWifi = () => {
   return saved === "true";
 };
 
-export const useSettingsStore = create<SettingsStore>()(
+const useSettingsStore = create<SettingsStore>()(
   persist(
     (set, get) => ({
       screenBrightness: getInitialBrightness(),
@@ -125,3 +126,5 @@ export const useSettingsStore = create<SettingsStore>()(
     },
   ),
 );
+
+export const useSettingsStoreSelectors = createSelectors(useSettingsStore);

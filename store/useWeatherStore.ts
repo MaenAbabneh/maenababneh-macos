@@ -4,6 +4,7 @@ import { STORAGE_KEYS } from "@/constants/storage-keys";
 import { DEFAULT_WEATHER_CITY } from "@/constants/weather-data";
 import { noopStorage } from "@/store/noop-storage";
 import type { WeatherCoordinates, WeatherUnit } from "@/lib/weather-service";
+import { createSelectors } from "./createSelectors";
 
 type WeatherState = {
   selectedCity: string;
@@ -22,7 +23,7 @@ type WeatherActions = {
 
 export type WeatherStore = WeatherState & WeatherActions;
 
-export const useWeatherStore = create<WeatherStore>()(
+const useWeatherStore = create<WeatherStore>()(
   persist(
     (set) => ({
       selectedCity: DEFAULT_WEATHER_CITY,
@@ -50,3 +51,5 @@ export const useWeatherStore = create<WeatherStore>()(
     },
   ),
 );
+
+export const useWeatherStoreSelectors = createSelectors(useWeatherStore);

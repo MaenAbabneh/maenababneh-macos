@@ -3,6 +3,7 @@ import { createJSONStorage, persist } from "zustand/middleware";
 import { noopStorage } from "@/store/noop-storage";
 import { STORAGE_KEYS } from "@/constants/storage-keys";
 import { initialNotes as INITIAL_NOTES } from "@/constants/initial-notes";
+import { createSelectors } from "./createSelectors";
 
 export type Note = {
   id: number;
@@ -27,7 +28,7 @@ const NOTES_PERSIST_VERSION = 3;
 
 const initialNotesForStore = INITIAL_NOTES as Note[];
 
-export const useNotesStore = create<NotesStore>()(
+const useNotesStore = create<NotesStore>()(
   persist(
     (set, get) => ({
       notes: initialNotesForStore,
@@ -61,3 +62,5 @@ export const useNotesStore = create<NotesStore>()(
     },
   ),
 );
+
+export const useNotesStoreSelectors = createSelectors(useNotesStore);

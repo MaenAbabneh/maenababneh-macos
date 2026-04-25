@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { createSelectors } from "./createSelectors";
 
 export type SystemState =
   | "booting"
@@ -23,7 +24,7 @@ type SystemStore = {
   restart: () => void;
 };
 
-export const useSystemStore = create<SystemStore>((set) => ({
+const useSystemStore = create<SystemStore>((set) => ({
   systemState: "booting",
   desktopIntroNonce: 0,
   desktopIntroLastPlayedNonce: 0,
@@ -47,3 +48,5 @@ export const useSystemStore = create<SystemStore>((set) => ({
   boot: () => set({ systemState: "booting" }),
   restart: () => set({ systemState: "restarting" }),
 }));
+
+export const useSystemStoreSelectors = createSelectors(useSystemStore);

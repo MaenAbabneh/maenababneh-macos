@@ -2,7 +2,7 @@
 
 import { Howl } from "howler";
 import { useRef } from "react";
-import { useSoundStore } from "@/store/useSoundStore";
+import { useSoundStoreSelectors } from "@/store/useSoundStore";
 
 const BASE_VOLUME = {
   startup: 0.6,
@@ -91,14 +91,15 @@ export function useUISound() {
   const lastPlayedAtRef = useRef<Record<string, number>>({});
 
   const shouldMute = () => {
-    const { sfxMuted, sfxVolume } = useSoundStore.getState();
+    const sfxMuted = useSoundStoreSelectors.use.sfxMuted();
+    const sfxVolume = useSoundStoreSelectors.use.sfxVolume();
     if (sfxMuted || sfxVolume <= 0) return true;
     if (typeof window === "undefined") return false;
     return window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
   };
 
   const applyVolume = (sound: Howl, baseVolume: number) => {
-    const { sfxVolume } = useSoundStore.getState();
+    const sfxVolume = useSoundStoreSelectors.use.sfxVolume();
     const scaled = Math.max(0, Math.min(1, baseVolume * (sfxVolume / 100)));
     sound.volume(scaled);
   };

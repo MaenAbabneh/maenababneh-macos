@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import { STORAGE_KEYS } from "@/constants/storage-keys";
 import { noopStorage } from "@/store/noop-storage";
+import { createSelectors } from "./createSelectors";
 
 type SoundState = {
   sfxMuted: boolean;
@@ -18,7 +19,7 @@ export type SoundStore = SoundState & SoundActions;
 
 const clampVolume = (value: number) => Math.max(0, Math.min(100, value));
 
-export const useSoundStore = create<SoundStore>()(
+const useSoundStore = create<SoundStore>()(
   persist(
     (set, get) => ({
       sfxMuted: false,
@@ -40,3 +41,5 @@ export const useSoundStore = create<SoundStore>()(
     },
   ),
 );
+
+export const useSoundStoreSelectors = createSelectors(useSoundStore);

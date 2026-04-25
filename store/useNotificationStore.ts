@@ -1,32 +1,8 @@
 import { create } from "zustand";
+import { createSelectors } from "./createSelectors";
+import { NotificationStore } from "@/types/components/notification";
 
-export type SystemNotification = {
-  id: string;
-  appName: string;
-  appIcon?: string;
-  title: string;
-  message: string;
-  createdAt: number;
-  action?: {
-    label: string;
-    appId: string;
-  };
-};
-
-type NotificationState = {
-  notifications: SystemNotification[];
-};
-
-type NotificationActions = {
-  pushNotification: (
-    payload: Omit<SystemNotification, "id" | "createdAt">,
-  ) => void;
-  dismissNotification: (id: string) => void;
-};
-
-export type NotificationStore = NotificationState & NotificationActions;
-
-export const useNotificationStore = create<NotificationStore>()((set) => ({
+const useNotificationStore = create<NotificationStore>()((set) => ({
   notifications: [],
   pushNotification: ({ appName, appIcon, title, message, action }) =>
     set((state) => ({
@@ -50,3 +26,6 @@ export const useNotificationStore = create<NotificationStore>()((set) => ({
       ),
     })),
 }));
+
+export const useNotificationStoreSelectors =
+  createSelectors(useNotificationStore);
