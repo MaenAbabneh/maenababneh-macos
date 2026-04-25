@@ -1,111 +1,31 @@
 "use client";
 
 import type React from "react";
-import dynamic from "next/dynamic";
-import { Loader2 } from "lucide-react";
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { X, Minus, ArrowRightIcon as ArrowsMaximize } from "lucide-react";
 import gsap from "gsap";
 import Flip from "gsap/Flip";
 import { useGSAP } from "@gsap/react";
-import type { AppWindow, GitHubProjectSummary } from "@/types";
+import type { AppWindow } from "@/types";
 import {
   APP_WINDOW_DEFAULT_SIZE,
   WINDOW_LAYOUT,
-  WINDOW_MIN_SIZE,
 } from "@/constants/window-config";
 import { useDesktopStore } from "@/store/useDesktopStore";
 import { useSettingsStore } from "@/store/useSettingsStore";
 import { useIsDarkMode } from "@/hooks/use-is-dark-mode";
 import { useUISound } from "@/hooks/useUISounds";
 import { useIsMobile } from "@/hooks/use-mobile";
-
-const AppLoader = () => (
-  <div className="flex items-center justify-center h-full w-full bg-inherit">
-    <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
-  </div>
-);
-
-const Notes = dynamic(() => import("@/components/apps/notes"), {
-  loading: () => <AppLoader />,
-});
-const GitHub = dynamic(() => import("@/components/apps/github"), {
-  loading: () => <AppLoader />,
-});
-const Safari = dynamic(() => import("@/components/apps/safari"), {
-  loading: () => <AppLoader />,
-});
-const VSCode = dynamic(() => import("@/components/apps/vscode"), {
-  loading: () => <AppLoader />,
-});
-const FaceTime = dynamic(() => import("@/components/apps/facetime"), {
-  loading: () => <AppLoader />,
-});
-const Terminal = dynamic(() => import("@/components/apps/terminal"), {
-  loading: () => <AppLoader />,
-});
-const Mail = dynamic(() => import("@/components/apps/mail"), {
-  loading: () => <AppLoader />,
-});
-const Contact = dynamic(() => import("@/components/apps/contact"), {
-  loading: () => <AppLoader />,
-});
-const YouTube = dynamic(() => import("@/components/apps/youtube"), {
-  loading: () => <AppLoader />,
-});
-const Spotify = dynamic(() => import("@/components/apps/spotify"), {
-  loading: () => <AppLoader />,
-});
-const Snake = dynamic(() => import("@/components/apps/snake"), {
-  loading: () => <AppLoader />,
-});
-const Weather = dynamic(() => import("@/components/apps/weather"), {
-  loading: () => <AppLoader />,
-});
-const Projects = dynamic(() => import("@/components/apps/project"), {
-  loading: () => <AppLoader />,
-});
-const Settings = dynamic(() => import("@/components/apps/settings"), {
-  loading: () => <AppLoader />,
-});
-
-const HireMe = dynamic(() => import("@/components/apps/hire-me"), {
-  loading: () => <AppLoader />,
-});
+import { componentMap } from "./app-loader";
+import type { WindowProps } from "@/types/components/window";
+import {
+  resizeWindow,
+  getAvailableWindowSpace,
+  calculateWindowSkew,
+} from "@/lib/window/resize";
+import { getDockTarget } from "@/lib/window/dock";
 
 gsap.registerPlugin(Flip);
-
-type AppWindowContentProps = {
-  isDarkMode?: boolean;
-  project?: GitHubProjectSummary | null;
-};
-
-const componentMap: Record<
-  string,
-  React.ComponentType<AppWindowContentProps>
-> = {
-  Notes,
-  GitHub,
-  Safari,
-  VSCode,
-  FaceTime,
-  Terminal,
-  Mail,
-  Contact,
-  YouTube,
-  Spotify,
-  Snake,
-  Weather,
-  Projects,
-  Settings,
-  HireMe,
-};
-
-interface WindowProps {
-  window: AppWindow;
-  isActive: boolean;
-  windowId: string;
-}
 
 export default function Window({
   window: appWindow,
@@ -147,8 +67,6 @@ export default function Window({
     isAnimatingMinimize || isRestoring || isOpening || isCloseRequested;
   const isClosingRef = useRef(false);
 
-  // Base geometry comes from the store (via props). We only keep draft geometry
-  // locally during drag/resize to avoid frequent store writes.
   const [draftPosition, setDraftPosition] = useState<
     AppWindow["position"] | null
   >(null);
@@ -253,161 +171,6 @@ export default function Window({
     { scope: windowRef, dependencies: [isActive, isAnimating, isMinimized] },
   );
 
-  const getDockTargetRect = useCallback(() => {
-    if (typeof document === "undefined") return null;
-
-    const iconEl = document.querySelector<HTMLElement>(
-      `[data-dock-app-id="${windowId}"]`,
-    );
-    if (iconEl) return iconEl.getBoundingClientRect();
-
-    const dockRoot = document.querySelector<HTMLElement>("[data-dock-root]");
-    const fallbackSize = { width: 56, height: 56 };
-
-    if (dockRoot) {
-      const r = dockRoot.getBoundingClientRect();
-      return DOMRect.fromRect({
-        x: r.left + r.width / 2 - fallbackSize.width / 2,
-        y: r.top + r.height / 2 - fallbackSize.height / 2,
-        width: fallbackSize.width,
-        height: fallbackSize.height,
-      });
-    }
-
-    return DOMRect.fromRect({
-      x: window.innerWidth / 2 - fallbackSize.width / 2,
-      y:
-        window.innerHeight -
-        WINDOW_LAYOUT.dockReservedHeight / 2 -
-        fallbackSize.height / 2,
-      width: fallbackSize.width,
-      height: fallbackSize.height,
-    });
-  }, [windowId]);
-
-  const getDockTarget = useCallback(() => {
-    if (typeof document === "undefined") return null;
-
-    const iconEl = document.querySelector<HTMLElement>(
-      `[data-dock-app-id="${windowId}"]`,
-    );
-    if (iconEl) return { el: iconEl, cleanup: undefined };
-
-    const rect = getDockTargetRect();
-    if (!rect) return null;
-
-    const proxy = document.createElement("div");
-    proxy.style.position = "fixed";
-    proxy.style.pointerEvents = "none";
-    proxy.style.opacity = "0";
-    proxy.style.zIndex = "-1";
-    document.body.appendChild(proxy);
-
-    proxy.style.left = `${rect.left}px`;
-    proxy.style.top = `${rect.top}px`;
-    proxy.style.width = `${rect.width}px`;
-    proxy.style.height = `${rect.height}px`;
-
-    return { el: proxy, cleanup: () => proxy.remove() };
-  }, [getDockTargetRect, windowId]);
-
-  useGSAP(
-    () => {
-      if (!isOpening) return;
-      const windowEl = windowRef.current;
-      if (!windowEl) {
-        finishOpenWindow(windowId);
-        return;
-      }
-
-      if (prefersReducedMotionRef.current) {
-        gsap.killTweensOf(windowEl);
-        gsap.set(windowEl, {
-          visibility: "visible",
-          opacity: 1,
-          pointerEvents: "auto",
-          x: 0,
-          y: 0,
-          scaleX: 1,
-          scaleY: 1,
-          skewX: 0,
-          skewY: 0,
-          clearProps: "willChange,filter",
-        });
-        finishOpenWindow(windowId);
-        return;
-      }
-
-      const dockTarget = getDockTarget();
-      if (!dockTarget) {
-        finishOpenWindow(windowId);
-        return;
-      }
-      const targetEl = dockTarget.el;
-
-      gsap.killTweensOf(windowEl);
-      Flip.killFlipsOf(windowEl);
-
-      gsap.set(windowEl, {
-        visibility: "visible",
-        opacity: 1,
-        pointerEvents: "none",
-        x: 0,
-        y: 0,
-        scaleX: 1,
-        scaleY: 1,
-        skewX: 0,
-        skewY: 0,
-        transformOrigin: "bottom center",
-        willChange: "transform, opacity",
-      });
-
-      const finalState = Flip.getState(windowEl, { props: "opacity" });
-
-      const fromRect = windowEl.getBoundingClientRect();
-      const targetRect = targetEl.getBoundingClientRect();
-      const fromCenterX = fromRect.left + fromRect.width / 2;
-      const targetCenterX = targetRect.left + targetRect.width / 2;
-      const deltaX = targetCenterX - fromCenterX;
-
-      const skewX = Math.max(
-        -12,
-        Math.min(12, (deltaX / Math.max(1, window.innerWidth)) * 28),
-      );
-
-      Flip.fit(windowEl, targetEl, {
-        duration: 0,
-        scale: true,
-      });
-
-      dockTarget.cleanup?.();
-
-      gsap.set(windowEl, {
-        opacity: 0,
-        skewX,
-      });
-
-      Flip.to(finalState, {
-        duration: 0.56,
-        ease: "power3.out",
-        scale: true,
-        clearProps: false,
-        onComplete: () => {
-          gsap.set(windowEl, {
-            clearProps:
-              "transform,opacity,visibility,pointerEvents,willChange,filter",
-          });
-          playSwoosh();
-          finishOpenWindow(windowId);
-        },
-      });
-    },
-    {
-      scope: windowRef,
-      dependencies: [finishOpenWindow, getDockTarget, isOpening, windowId],
-    },
-  );
-
   useEffect(() => {
     positionRef.current = position;
   }, [position]);
@@ -442,6 +205,98 @@ export default function Window({
 
   useGSAP(
     () => {
+      if (!isOpening) return;
+      const windowEl = windowRef.current;
+      if (!windowEl) {
+        finishOpenWindow(windowId);
+        return;
+      }
+
+      if (prefersReducedMotionRef.current) {
+        gsap.killTweensOf(windowEl);
+        gsap.set(windowEl, {
+          visibility: "visible",
+          opacity: 1,
+          pointerEvents: "auto",
+          x: 0,
+          y: 0,
+          scaleX: 1,
+          scaleY: 1,
+          skewX: 0,
+          skewY: 0,
+          clearProps: "willChange,filter",
+        });
+        finishOpenWindow(windowId);
+        return;
+      }
+
+      const dockTarget = getDockTarget(windowId);
+      if (!dockTarget) {
+        finishOpenWindow(windowId);
+        return;
+      }
+      const targetEl = dockTarget.el;
+
+      gsap.killTweensOf(windowEl);
+      Flip.killFlipsOf(windowEl);
+
+      gsap.set(windowEl, {
+        visibility: "visible",
+        opacity: 1,
+        pointerEvents: "none",
+        x: 0,
+        y: 0,
+        scaleX: 1,
+        scaleY: 1,
+        skewX: 0,
+        skewY: 0,
+        transformOrigin: "bottom center",
+        willChange: "transform, opacity",
+      });
+
+      const finalState = Flip.getState(windowEl, { props: "opacity" });
+
+      const fromRect = windowEl.getBoundingClientRect();
+      const targetRect = targetEl.getBoundingClientRect();
+      const fromCenterX = fromRect.left + fromRect.width / 2;
+      const targetCenterX = targetRect.left + targetRect.width / 2;
+      const skewX = calculateWindowSkew(fromCenterX, targetCenterX);
+
+      Flip.fit(windowEl, targetEl, {
+        duration: 0,
+        scale: true,
+      });
+
+      dockTarget.cleanup?.();
+
+      gsap.set(windowEl, {
+        opacity: 0,
+        skewX,
+      });
+
+      Flip.to(finalState, {
+        duration: 0.56,
+        ease: "power3.out",
+        scale: true,
+        clearProps: false,
+        onComplete: () => {
+          gsap.set(windowEl, {
+            clearProps:
+              "transform,opacity,visibility,pointerEvents,willChange,filter",
+          });
+          playSwoosh();
+          finishOpenWindow(windowId);
+        },
+      });
+    },
+    {
+      scope: windowRef,
+      dependencies: [finishOpenWindow, windowId],
+    },
+  );
+
+  useGSAP(
+    () => {
       if (!isRestoring) return;
       const windowEl = windowRef.current;
       if (!windowEl) {
@@ -467,7 +322,7 @@ export default function Window({
         return;
       }
 
-      const dockTarget = getDockTarget();
+      const dockTarget = getDockTarget(windowId);
       if (!dockTarget) {
         finishRestoreWindow(windowId);
         return;
@@ -497,11 +352,7 @@ export default function Window({
       const targetRect = targetEl.getBoundingClientRect();
       const fromCenterX = fromRect.left + fromRect.width / 2;
       const targetCenterX = targetRect.left + targetRect.width / 2;
-      const deltaX = targetCenterX - fromCenterX;
-      const skewX = Math.max(
-        -12,
-        Math.min(12, (deltaX / Math.max(1, window.innerWidth)) * 28),
-      );
+      const skewX = calculateWindowSkew(fromCenterX, targetCenterX);
 
       Flip.fit(windowEl, targetEl, {
         duration: 0,
@@ -525,20 +376,13 @@ export default function Window({
             clearProps:
               "transform,opacity,visibility,pointerEvents,willChange,filter",
           });
-          // playSwoosh();
           finishRestoreWindow(windowId);
         },
       });
     },
     {
       scope: windowRef,
-      dependencies: [
-        finishRestoreWindow,
-        getDockTarget,
-        getDockTargetRect,
-        isRestoring,
-        windowId,
-      ],
+      dependencies: [finishRestoreWindow, windowId],
     },
   );
 
@@ -554,7 +398,6 @@ export default function Window({
       if (isClosingRef.current) return;
       isClosingRef.current = true;
 
-      // Stop any in-progress interactions
       setIsDragging(false);
       setIsResizing(false);
       setResizeDirection(null);
@@ -568,7 +411,7 @@ export default function Window({
 
       playCloseWindow();
 
-      const dockTarget = getDockTarget();
+      const dockTarget = getDockTarget(windowId);
       if (!dockTarget) {
         closeWindow(windowId);
         return;
@@ -582,12 +425,7 @@ export default function Window({
       const targetRect = targetEl.getBoundingClientRect();
       const fromCenterX = fromRect.left + fromRect.width / 2;
       const targetCenterX = targetRect.left + targetRect.width / 2;
-      const deltaX = targetCenterX - fromCenterX;
-
-      const skewX = Math.max(
-        -12,
-        Math.min(12, (deltaX / Math.max(1, window.innerWidth)) * 28),
-      );
+      const skewX = calculateWindowSkew(fromCenterX, targetCenterX);
 
       gsap.set(windowEl, {
         visibility: "visible",
@@ -618,14 +456,7 @@ export default function Window({
         onComplete: () => closeWindow(windowId),
       });
     })();
-  }, [
-    closeWindow,
-    contextSafe,
-    getDockTarget,
-    isMinimized,
-    playCloseWindow,
-    windowId,
-  ]);
+  }, [closeWindow, contextSafe, isMinimized, playCloseWindow, windowId]);
 
   useGSAP(
     () => {
@@ -656,39 +487,17 @@ export default function Window({
         const dx = e.clientX - resizeStartPos.x;
         const dy = e.clientY - resizeStartPos.y;
 
-        let newWidth = resizeStartSize.width;
-        let newHeight = resizeStartSize.height;
-        let newX = position.x;
-        let newY = position.y;
+        const { newSize, newPosition } = resizeWindow(
+          resizeDirection,
+          resizeStartSize,
+          position,
+          dx,
+          dy,
+        );
 
-        // Minimum window dimensions
-        const minWidth = WINDOW_MIN_SIZE.width;
-        const minHeight = WINDOW_MIN_SIZE.height;
-
-        if (resizeDirection.includes("e")) {
-          newWidth = Math.max(minWidth, resizeStartSize.width + dx);
-        }
-        if (resizeDirection.includes("s")) {
-          newHeight = Math.max(minHeight, resizeStartSize.height + dy);
-        }
-        if (resizeDirection.includes("w")) {
-          const proposedWidth = resizeStartSize.width - dx;
-          if (proposedWidth >= minWidth) {
-            newWidth = proposedWidth;
-            newX = position.x + dx;
-          }
-        }
-        if (resizeDirection.includes("n")) {
-          const proposedHeight = resizeStartSize.height - dy;
-          if (proposedHeight >= minHeight) {
-            newHeight = proposedHeight;
-            newY = position.y + dy;
-          }
-        }
-
-        setDraftSize({ width: newWidth, height: newHeight });
+        setDraftSize(newSize);
         if (resizeDirection.includes("w") || resizeDirection.includes("n")) {
-          setDraftPosition({ x: newX, y: newY });
+          setDraftPosition(newPosition);
         }
       }
     };
@@ -698,11 +507,9 @@ export default function Window({
       setIsResizing(false);
       setResizeDirection(null);
 
-      // Commit geometry to store for persistence
       setWindowPosition(windowId, positionRef.current);
       setWindowSize(windowId, sizeRef.current);
 
-      // Clear draft geometry; next render will use store values.
       setDraftPosition(null);
       setDraftSize(null);
     };
@@ -733,7 +540,6 @@ export default function Window({
   const handleTitleBarMouseDown = (e: React.MouseEvent) => {
     if (isMobile || isMaximized || isMinimized || isAnimating) return;
 
-    // Prevent dragging when clicking on buttons
     if ((e.target as HTMLElement).closest(".window-controls")) {
       return;
     }
@@ -770,7 +576,6 @@ export default function Window({
     if (isMobile) return;
     if (isMaximized) {
       playSwitchOff();
-      // Restore previous state
       positionRef.current = preMaximizeState.position;
       sizeRef.current = preMaximizeState.size;
       setDraftPosition(preMaximizeState.position);
@@ -778,23 +583,14 @@ export default function Window({
       setWindowPosition(windowId, preMaximizeState.position);
       setWindowSize(windowId, preMaximizeState.size);
 
-      // Clear draft after commit
       setDraftPosition(null);
       setDraftSize(null);
     } else {
       playSwitchOn();
-      // Save current state before maximizing
       setPreMaximizeState({ position, size });
 
-      // Get the available space (accounting for menubar)
-      const availableHeight = window.innerHeight - 26; // 6px for menubar + 20px padding
-
-      // Maximize
+      const nextSize = getAvailableWindowSpace();
       const nextPosition = { x: 0, y: 26 };
-      const nextSize = {
-        width: window.innerWidth,
-        height: availableHeight - 70, // Account for dock
-      };
 
       positionRef.current = nextPosition;
       sizeRef.current = nextSize;
@@ -803,7 +599,6 @@ export default function Window({
       setWindowPosition(windowId, nextPosition);
       setWindowSize(windowId, nextSize);
 
-      // Clear draft after commit
       setDraftPosition(null);
       setDraftSize(null);
     }
@@ -811,13 +606,11 @@ export default function Window({
     setIsMaximized(!isMaximized);
   };
 
-  // Minimize with a Dock-targeted "Genie" animation
   const handleMinimize = () => {
     contextSafe(() => {
       if (isMinimizeDisabled) return;
       if (isMinimized || isAnimatingMinimize || isRestoring) return;
 
-      // Stop any in-progress interactions
       setIsDragging(false);
       setIsResizing(false);
       setResizeDirection(null);
@@ -835,7 +628,7 @@ export default function Window({
         return;
       }
 
-      const dockTarget = getDockTarget();
+      const dockTarget = getDockTarget(windowId);
       if (!dockTarget) {
         minimizeWindow(windowId);
         return;
@@ -850,11 +643,7 @@ export default function Window({
       const targetRect = targetEl.getBoundingClientRect();
       const fromCenterX = fromRect.left + fromRect.width / 2;
       const targetCenterX = targetRect.left + targetRect.width / 2;
-      const deltaX = targetCenterX - fromCenterX;
-      const skewX = Math.max(
-        -12,
-        Math.min(12, (deltaX / Math.max(1, window.innerWidth)) * 28),
-      );
+      const skewX = calculateWindowSkew(fromCenterX, targetCenterX);
 
       gsap.set(windowEl, {
         visibility: "visible",
