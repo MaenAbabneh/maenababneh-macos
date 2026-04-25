@@ -39,16 +39,16 @@ const YouTube = dynamic(() => import("@/components/apps/youtube"), {
 const Spotify = dynamic(() => import("@/components/apps/spotify"), {
   loading: () => <AppLoader />,
 });
-const Snake = dynamic(() => import("@/components/apps/snake"), {
+const Snake = dynamic(() => import("@/components/apps/snake/index"), {
   loading: () => <AppLoader />,
 });
-const Weather = dynamic(() => import("@/components/apps/weather"), {
+const Weather = dynamic(() => import("@/components/apps/weather/index"), {
   loading: () => <AppLoader />,
 });
-const Projects = dynamic(() => import("@/components/apps/project"), {
+const Projects = dynamic(() => import("@/components/apps/project/index"), {
   loading: () => <AppLoader />,
 });
-const Settings = dynamic(() => import("@/components/apps/settings"), {
+const Settings = dynamic(() => import("@/components/apps/settings/index"), {
   loading: () => <AppLoader />,
 });
 
