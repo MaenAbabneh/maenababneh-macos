@@ -9,7 +9,7 @@ const AppLoader = () => (
   </div>
 );
 
-const Notes = dynamic(() => import("@/components/apps/notes"), {
+const Notes = dynamic(() => import("@/components/apps/notes/index"), {
   loading: () => <AppLoader />,
 });
 const GitHub = dynamic(() => import("@/components/apps/github"), {
