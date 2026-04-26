@@ -5,7 +5,7 @@ import gsap from "gsap";
 import { Draggable } from "gsap/Draggable";
 import { useEffect, useRef, useState } from "react";
 import type React from "react";
-import type { DesktopPosition } from "@/types";
+import type { DesktopPosition } from "@/types/components/desktop";
 
 interface ContactFolderProps {
   variant?: "desktop" | "mobile";

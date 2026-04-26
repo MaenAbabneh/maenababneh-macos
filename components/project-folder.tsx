@@ -7,7 +7,8 @@ import { formatDistanceToNow } from "date-fns";
 import { ExternalLink, Github, Link2, RefreshCw, Star } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type React from "react";
-import type { DesktopPosition, GitHubProjectSummary } from "@/types";
+import type { DesktopPosition } from "@/types/components/desktop";
+import type { GitHubProjectSummary } from "@/types";
 import {
   ContextMenu,
   ContextMenuContent,
