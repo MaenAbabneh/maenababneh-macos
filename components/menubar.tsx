@@ -7,9 +7,9 @@ import Image from "next/image";
 import { Search, X } from "lucide-react";
 import { AppleIcon } from "@/components/icons";
 import gsap from "gsap";
-import { useDesktopStoreSelectors } from "@/store/useDesktopStore";
-import { useSettingsStoreSelectors } from "@/store/useSettingsStore";
-import { useSystemStoreSelectors } from "@/store/useSystemStore";
+import { useDesktopStore } from "@/store/useDesktopStore";
+import { useSettingsStore } from "@/store/useSettingsStore";
+import { useSystemStore } from "@/store/useSystemStore";
 import { useIsDarkMode } from "@/hooks/use-is-dark-mode";
 import { useUISound } from "@/hooks/useUISounds";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -48,24 +48,27 @@ export default function Menubar({ time }: MenubarProps) {
   const [showWifiToggle, setShowWifiToggle] = useState(false);
 
   // Settings state
-  const wifiEnabled = useSettingsStoreSelectors.use.wifiEnabled();
-  const toggleWifi = useSettingsStoreSelectors.use.toggleWifi();
-  const reduceMotion = useSettingsStoreSelectors.use.reduceMotion();
+  const wifiEnabled = useSettingsStore((state) => state.wifiEnabled);
+  const toggleWifi = useSettingsStore((state) => state.toggleWifi);
+  const reduceMotion = useSettingsStore((state) => state.reduceMotion);
 
   // Desktop state
-  const toggleSpotlight = useDesktopStoreSelectors.use.toggleSpotlight();
-  const toggleControlCenter =
-    useDesktopStoreSelectors.use.toggleControlCenter();
-  const showControlCenter = useDesktopStoreSelectors.use.showControlCenter();
-  const requestCloseWindow = useDesktopStoreSelectors.use.requestCloseWindow();
-  const activeWindowId = useDesktopStoreSelectors.use.activeWindowId();
-  const openWindows = useDesktopStoreSelectors.use.openWindows();
+  const toggleSpotlight = useDesktopStore((state) => state.toggleSpotlight);
+  const toggleControlCenter = useDesktopStore(
+    (state) => state.toggleControlCenter,
+  );
+  const showControlCenter = useDesktopStore((state) => state.showControlCenter);
+  const requestCloseWindow = useDesktopStore(
+    (state) => state.requestCloseWindow,
+  );
+  const activeWindowId = useDesktopStore((state) => state.activeWindowId);
+  const openWindows = useDesktopStore((state) => state.openWindows);
 
   // System state
-  const sleep = useSystemStoreSelectors.use.sleep();
-  const restart = useSystemStoreSelectors.use.restart();
-  const shutdown = useSystemStoreSelectors.use.shutdown();
-  const logout = useSystemStoreSelectors.use.logout();
+  const sleep = useSystemStore((state) => state.sleep);
+  const restart = useSystemStore((state) => state.restart);
+  const shutdown = useSystemStore((state) => state.shutdown);
+  const logout = useSystemStore((state) => state.logout);
 
   const activeWindow = useMemo(() => {
     if (!activeWindowId) return null;

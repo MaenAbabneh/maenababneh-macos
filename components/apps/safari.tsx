@@ -27,7 +27,7 @@ export default function Safari({ isDarkMode = true }: SafariProps) {
   const [url, setUrl] = useState("https://maenababneh.dev");
   const [isLoading, setIsLoading] = useState(false);
   const activeTab = "home";
-  const wifiEnabled = useSettingsStore((s) => s.wifiEnabled);
+  const wifiEnabled = useSettingsStore((state) => state.wifiEnabled);
 
   const textColor = isDarkMode ? "text-white" : "text-gray-800";
   const bgColor = isDarkMode ? "bg-gray-900" : "bg-white";

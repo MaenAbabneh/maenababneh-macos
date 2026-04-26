@@ -49,7 +49,7 @@ const getInitialWifi = () => {
   return saved === "true";
 };
 
-const useSettingsStore = create<SettingsStore>()(
+export const useSettingsStore = create<SettingsStore>()(
   persist(
     (set, get) => ({
       screenBrightness: getInitialBrightness(),

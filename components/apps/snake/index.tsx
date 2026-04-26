@@ -14,10 +14,10 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SNAKE_CONFIG } from "@/constants/game-config";
-import { useSnakeStoreSelectors } from "@/store/useSnakeStore";
+import { useSnakeStore } from "@/store/useSnakeStore";
 import { useUISound } from "@/hooks/useUISounds";
-import { useSettingsStoreSelectors } from "@/store/useSettingsStore";
-import { useNotificationStoreSelectors } from "@/store/useNotificationStore";
+import { useSettingsStore } from "@/store/useSettingsStore";
+import { useNotificationStore } from "@/store/useNotificationStore";
 import type { SnakeProps, Position, Direction } from "@/types/apps/snake";
 import {
   drawRoundedRect,
@@ -37,35 +37,38 @@ export default function Snake({ isDarkMode = true }: SnakeProps) {
   const BODY_INSET = SNAKE_CONFIG.bodyInset;
 
   // Snake state
-  const snake = useSnakeStoreSelectors.use.snake();
-  const food = useSnakeStoreSelectors.use.food();
-  const direction = useSnakeStoreSelectors.use.direction();
-  const queuedDirection = useSnakeStoreSelectors.use.queuedDirection();
-  const gameOver = useSnakeStoreSelectors.use.gameOver();
-  const isPaused = useSnakeStoreSelectors.use.isPaused();
-  const score = useSnakeStoreSelectors.use.score();
-  const highScore = useSnakeStoreSelectors.use.highScore();
-  const speedMs = useSnakeStoreSelectors.use.speedMs();
-  const didNotifyHighScore = useSnakeStoreSelectors.use.didNotifyHighScore();
-  const queueDirection = useSnakeStoreSelectors.use.queueDirection();
-  const setDirection = useSnakeStoreSelectors.use.setDirection();
-  const setSnake = useSnakeStoreSelectors.use.setSnake();
-  const setFood = useSnakeStoreSelectors.use.setFood();
-  const setGameOver = useSnakeStoreSelectors.use.setGameOver();
-  const setPaused = useSnakeStoreSelectors.use.setPaused();
-  const togglePaused = useSnakeStoreSelectors.use.togglePaused();
-  const setScore = useSnakeStoreSelectors.use.setScore();
-  const setHighScore = useSnakeStoreSelectors.use.setHighScore();
-  const setSpeedMs = useSnakeStoreSelectors.use.setSpeedMs();
-  const setDidNotifyHighScore =
-    useSnakeStoreSelectors.use.setDidNotifyHighScore();
-  const resetRun = useSnakeStoreSelectors.use.resetRun();
+  const snake = useSnakeStore((state) => state.snake);
+  const food = useSnakeStore((state) => state.food);
+  const direction = useSnakeStore((state) => state.direction);
+  const queuedDirection = useSnakeStore((state) => state.queuedDirection);
+  const gameOver = useSnakeStore((state) => state.gameOver);
+  const isPaused = useSnakeStore((state) => state.isPaused);
+  const score = useSnakeStore((state) => state.score);
+  const highScore = useSnakeStore((state) => state.highScore);
+  const speedMs = useSnakeStore((state) => state.speedMs);
+  const didNotifyHighScore = useSnakeStore((state) => state.didNotifyHighScore);
+  const queueDirection = useSnakeStore((state) => state.queueDirection);
+  const setDirection = useSnakeStore((state) => state.setDirection);
+  const setSnake = useSnakeStore((state) => state.setSnake);
+  const setFood = useSnakeStore((state) => state.setFood);
+  const setGameOver = useSnakeStore((state) => state.setGameOver);
+  const setPaused = useSnakeStore((state) => state.setPaused);
+  const togglePaused = useSnakeStore((state) => state.togglePaused);
+  const setScore = useSnakeStore((state) => state.setScore);
+  const setHighScore = useSnakeStore((state) => state.setHighScore);
+  const setSpeedMs = useSnakeStore((state) => state.setSpeedMs);
+  const setDidNotifyHighScore = useSnakeStore(
+    (state) => state.setDidNotifyHighScore,
+  );
+  const resetRun = useSnakeStore((state) => state.resetRun);
 
   // Settings state
-  const reduceMotion = useSettingsStoreSelectors.use.reduceMotion();
+  const reduceMotion = useSettingsStore((state) => state.reduceMotion);
 
   // Notifications
-  const pushNotification = useNotificationStoreSelectors.use.pushNotification();
+  const pushNotification = useNotificationStore(
+    (state) => state.pushNotification,
+  );
 
   // Sounds
   const { playPop, playError } = useUISound();

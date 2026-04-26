@@ -1,8 +1,7 @@
 "use client";
 
 import { Howl } from "howler";
-import { useRef } from "react";
-import { useSoundStoreSelectors } from "@/store/useSoundStore";
+import { useSoundStore } from "@/store/useSoundStore";
 
 const BASE_VOLUME = {
   startup: 0.6,
@@ -87,19 +86,18 @@ const disabledSound = new Howl({
   volume: 0.5,
 });
 
-export function useUISound() {
-  const lastPlayedAtRef = useRef<Record<string, number>>({});
+const lastPlayedAtByKey: Record<string, number> = {};
 
+export function useUISound() {
   const shouldMute = () => {
-    const sfxMuted = useSoundStoreSelectors.use.sfxMuted();
-    const sfxVolume = useSoundStoreSelectors.use.sfxVolume();
+    const { sfxMuted, sfxVolume } = useSoundStore.getState();
     if (sfxMuted || sfxVolume <= 0) return true;
     if (typeof window === "undefined") return false;
     return window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
   };
 
   const applyVolume = (sound: Howl, baseVolume: number) => {
-    const sfxVolume = useSoundStoreSelectors.use.sfxVolume();
+    const { sfxVolume } = useSoundStore.getState();
     const scaled = Math.max(0, Math.min(1, baseVolume * (sfxVolume / 100)));
     sound.volume(scaled);
   };
@@ -117,9 +115,9 @@ export function useUISound() {
 
     if (key && cooldownMs > 0) {
       const now = Date.now();
-      const lastPlayedAt = lastPlayedAtRef.current[key] ?? 0;
+      const lastPlayedAt = lastPlayedAtByKey[key] ?? 0;
       if (now - lastPlayedAt < cooldownMs) return;
-      lastPlayedAtRef.current[key] = now;
+      lastPlayedAtByKey[key] = now;
     }
 
     applyVolume(sound, baseVolume);

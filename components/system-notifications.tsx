@@ -3,17 +3,18 @@
 import { useEffect, useRef } from "react";
 import gsap from "gsap";
 import { Bell, X } from "lucide-react";
-import { useDesktopStoreSelectors } from "@/store/useDesktopStore";
-import { useNotificationStoreSelectors } from "@/store/useNotificationStore";
+import { useDesktopStore } from "@/store/useDesktopStore";
+import { useNotificationStore } from "@/store/useNotificationStore";
 import { useIsDarkMode } from "@/hooks/use-is-dark-mode";
-import { useSettingsStoreSelectors } from "@/store/useSettingsStore";
+import { useSettingsStore } from "@/store/useSettingsStore";
 
 export default function SystemNotifications() {
-  const notifications = useNotificationStoreSelectors.use.notifications();
-  const dismissNotification =
-    useNotificationStoreSelectors.use.dismissNotification();
-  const openApp = useDesktopStoreSelectors.use.openApp();
-  const reduceMotion = useSettingsStoreSelectors.use.reduceMotion();
+  const notifications = useNotificationStore((state) => state.notifications);
+  const dismissNotification = useNotificationStore(
+    (state) => state.dismissNotification,
+  );
+  const openApp = useDesktopStore((state) => state.openApp);
+  const reduceMotion = useSettingsStore((state) => state.reduceMotion);
   const { isDarkMode } = useIsDarkMode();
   const rootRef = useRef<HTMLDivElement>(null);
 

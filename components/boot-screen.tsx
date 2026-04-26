@@ -3,16 +3,16 @@
 import { useCallback, useEffect, useRef } from "react";
 import { AppleIcon } from "@/components/icons";
 import { ANIMATION_DELAYS_MS } from "@/constants/window-config";
-import { useSettingsStoreSelectors } from "@/store/useSettingsStore";
-import { useSystemStoreSelectors } from "@/store/useSystemStore";
+import { useSettingsStore } from "@/store/useSettingsStore";
+import { useSystemStore } from "@/store/useSystemStore";
 
 export default function BootScreen() {
   // System state
-  const systemState = useSystemStoreSelectors.use.systemState();
-  const setSystemState = useSystemStoreSelectors.use.setSystemState();
+  const systemState = useSystemStore((state) => state.systemState);
+  const setSystemState = useSystemStore((state) => state.setSystemState);
 
   // Settings state
-  const reduceMotion = useSettingsStoreSelectors.use.reduceMotion();
+  const reduceMotion = useSettingsStore((state) => state.reduceMotion);
 
   const hasCompletedRef = useRef(false);
 
@@ -20,12 +20,10 @@ export default function BootScreen() {
     if (hasCompletedRef.current) return;
     hasCompletedRef.current = true;
 
-    const currentState = useSystemStoreSelectors.use.systemState();
-
-    if (currentState === "booting" || currentState === "restarting") {
+    if (systemState === "booting" || systemState === "restarting") {
       setSystemState("login");
     }
-  }, [setSystemState]);
+  }, [setSystemState, systemState]);
 
   useEffect(() => {
     if (systemState !== "booting" && systemState !== "restarting") return;

@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import { useIsDarkMode } from "@/hooks/use-is-dark-mode";
 import { useUISound } from "@/hooks/useUISounds";
-import { useMediaStoreSelectors } from "@/store/useMediaStore";
+import { useMediaStore } from "@/store/useMediaStore";
 import { SPOTIFY_PLAYLIST } from "@/constants/music-data";
 
 export default function Spotify() {
@@ -24,17 +24,18 @@ export default function Spotify() {
   const { playDisabled } = useUISound();
 
   // Media state
-  const isPlaying = useMediaStoreSelectors.use.spotifyIsPlaying();
-  const setIsPlaying = useMediaStoreSelectors.use.setSpotifyIsPlaying();
-  const currentTrackIndex = useMediaStoreSelectors.use.spotifyTrackIndex();
-  const setCurrentTrackIndex =
-    useMediaStoreSelectors.use.setSpotifyTrackIndex();
-  const volume = useMediaStoreSelectors.use.spotifyVolume();
-  const setVolume = useMediaStoreSelectors.use.setSpotifyVolume();
-  const isMuted = useMediaStoreSelectors.use.spotifyIsMuted();
-  const setIsMuted = useMediaStoreSelectors.use.setSpotifyIsMuted();
-  const toggleMute = useMediaStoreSelectors.use.toggleSpotifyMute();
-  const globalMusicMuted = useMediaStoreSelectors.use.globalMusicMuted();
+  const isPlaying = useMediaStore((state) => state.spotifyIsPlaying);
+  const setIsPlaying = useMediaStore((state) => state.setSpotifyIsPlaying);
+  const currentTrackIndex = useMediaStore((state) => state.spotifyTrackIndex);
+  const setCurrentTrackIndex = useMediaStore(
+    (state) => state.setSpotifyTrackIndex,
+  );
+  const volume = useMediaStore((state) => state.spotifyVolume);
+  const setVolume = useMediaStore((state) => state.setSpotifyVolume);
+  const isMuted = useMediaStore((state) => state.spotifyIsMuted);
+  const setIsMuted = useMediaStore((state) => state.setSpotifyIsMuted);
+  const toggleMute = useMediaStore((state) => state.toggleSpotifyMute);
+  const globalMusicMuted = useMediaStore((state) => state.globalMusicMuted);
 
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);

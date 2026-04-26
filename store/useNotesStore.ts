@@ -28,7 +28,7 @@ const NOTES_PERSIST_VERSION = 3;
 
 const initialNotesForStore = INITIAL_NOTES as Note[];
 
-const useNotesStore = create<NotesStore>()(
+export const useNotesStore = create<NotesStore>()(
   persist(
     (set, get) => ({
       notes: initialNotesForStore,

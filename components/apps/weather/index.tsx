@@ -26,8 +26,8 @@ import {
   normalizeWeatherCondition,
   type CitySuggestion,
 } from "@/lib/weather-service";
-import { useWeatherStoreSelectors } from "@/store/useWeatherStore";
-import { useSettingsStoreSelectors } from "@/store/useSettingsStore";
+import { useWeatherStore } from "@/store/useWeatherStore";
+import { useSettingsStore } from "@/store/useSettingsStore";
 import type { WeatherProps, Particle } from "@/types/apps/weather";
 import {
   getFallbackDaytime,
@@ -40,21 +40,24 @@ import { WeatherPanels } from "./components/weather-panels";
 
 export default function Weather({ isDarkMode = true }: WeatherProps) {
   // Weather state
-  const selectedCity = useWeatherStoreSelectors.use.selectedCity();
-  const unit = useWeatherStoreSelectors.use.unit();
-  const locationCoords = useWeatherStoreSelectors.use.locationCoords();
-  const autoLocateAttempted =
-    useWeatherStoreSelectors.use.autoLocateAttempted();
-  const setSelectedCity = useWeatherStoreSelectors.use.setSelectedCity();
-  const setUnit = useWeatherStoreSelectors.use.setUnit();
-  const setLocationCoords = useWeatherStoreSelectors.use.setLocationCoords();
-  const clearLocationCoords =
-    useWeatherStoreSelectors.use.clearLocationCoords();
-  const setAutoLocateAttempted =
-    useWeatherStoreSelectors.use.setAutoLocateAttempted();
+  const selectedCity = useWeatherStore((state) => state.selectedCity);
+  const unit = useWeatherStore((state) => state.unit);
+  const locationCoords = useWeatherStore((state) => state.locationCoords);
+  const autoLocateAttempted = useWeatherStore(
+    (state) => state.autoLocateAttempted,
+  );
+  const setSelectedCity = useWeatherStore((state) => state.setSelectedCity);
+  const setUnit = useWeatherStore((state) => state.setUnit);
+  const setLocationCoords = useWeatherStore((state) => state.setLocationCoords);
+  const clearLocationCoords = useWeatherStore(
+    (state) => state.clearLocationCoords,
+  );
+  const setAutoLocateAttempted = useWeatherStore(
+    (state) => state.setAutoLocateAttempted,
+  );
 
   // Settings store
-  const reduceMotion = useSettingsStoreSelectors.use.reduceMotion();
+  const reduceMotion = useSettingsStore((state) => state.reduceMotion);
 
   const [displayCity, setDisplayCity] = useState(DEFAULT_WEATHER_CITY);
   const [searchQuery, setSearchQuery] = useState("");

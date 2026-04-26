@@ -4,8 +4,8 @@ import { useEffect } from "react";
 import dynamic from "next/dynamic";
 import BootScreen from "@/components/boot-screen";
 import LoginScreen from "@/components/login-screen";
-import { useSettingsStoreSelectors } from "@/store/useSettingsStore";
-import { useSystemStoreSelectors } from "@/store/useSystemStore";
+import { useSettingsStore } from "@/store/useSettingsStore";
+import { useSystemStore } from "@/store/useSystemStore";
 
 const Desktop = dynamic(() => import("@/components/desktop/index"));
 const SleepScreen = dynamic(() => import("@/components/sleep-screen"));
@@ -36,8 +36,8 @@ type NavigatorWithModelContext = Navigator & {
 };
 
 export default function HomeClient() {
-  const systemState = useSystemStoreSelectors.use.systemState();
-  const screenBrightness = useSettingsStoreSelectors.use.screenBrightness();
+  const systemState = useSystemStore((state) => state.systemState);
+  const screenBrightness = useSettingsStore((state) => state.screenBrightness);
 
   useEffect(() => {
     const modelContext = (navigator as NavigatorWithModelContext).modelContext;

@@ -19,7 +19,7 @@ export type SoundStore = SoundState & SoundActions;
 
 const clampVolume = (value: number) => Math.max(0, Math.min(100, value));
 
-const useSoundStore = create<SoundStore>()(
+export const useSoundStore = create<SoundStore>()(
   persist(
     (set, get) => ({
       sfxMuted: false,

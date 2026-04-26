@@ -2,7 +2,7 @@ import { create } from "zustand";
 import { createSelectors } from "./createSelectors";
 import { NotificationStore } from "@/types/components/notification";
 
-const useNotificationStore = create<NotificationStore>()((set) => ({
+export const useNotificationStore = create<NotificationStore>()((set) => ({
   notifications: [],
   pushNotification: ({ appName, appIcon, title, message, action }) =>
     set((state) => ({

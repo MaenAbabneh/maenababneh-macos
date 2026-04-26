@@ -8,7 +8,7 @@ import { createSelectors } from "./createSelectors";
 
 const initialFood: Position = { x: 5, y: 5 };
 
-const useSnakeStore = create<SnakeStore>()(
+export const useSnakeStore = create<SnakeStore>()(
   persist(
     (set, get) => ({
       snake: INITIAL_SNAKE,

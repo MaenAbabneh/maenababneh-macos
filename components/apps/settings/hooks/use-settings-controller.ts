@@ -4,11 +4,11 @@ import { useState, type ChangeEvent } from "react";
 import { useTheme } from "next-themes";
 import type { AccentColorId, WallpaperId } from "@/constants/appearance-config";
 import { useUISound } from "@/hooks/useUISounds";
-import { useDesktopStoreSelectors } from "@/store/useDesktopStore";
-import { useMediaStoreSelectors } from "@/store/useMediaStore";
-import { useNotificationStoreSelectors } from "@/store/useNotificationStore";
-import { useSettingsStoreSelectors } from "@/store/useSettingsStore";
-import { useSoundStoreSelectors } from "@/store/useSoundStore";
+import { useDesktopStore } from "@/store/useDesktopStore";
+import { useMediaStore } from "@/store/useMediaStore";
+import { useNotificationStore } from "@/store/useNotificationStore";
+import { useSettingsStore } from "@/store/useSettingsStore";
+import { useSoundStore } from "@/store/useSoundStore";
 import type { SettingsProps } from "@/types/apps/settings";
 import { useSystemReducedMotion } from "./use-system-reduced-motion";
 
@@ -18,33 +18,37 @@ export const useSettingsController = ({ isDarkMode = true }: SettingsProps) => {
   const systemReducedMotion = useSystemReducedMotion();
   const { playSwitchOn, playDisabled } = useUISound();
 
-  const sfxMuted = useSoundStoreSelectors.use.sfxMuted();
-  const sfxVolume = useSoundStoreSelectors.use.sfxVolume();
-  const setSfxMuted = useSoundStoreSelectors.use.setSfxMuted();
-  const setSfxVolume = useSoundStoreSelectors.use.setSfxVolume();
+  const sfxMuted = useSoundStore((state) => state.sfxMuted);
+  const sfxVolume = useSoundStore((state) => state.sfxVolume);
+  const setSfxMuted = useSoundStore((state) => state.setSfxMuted);
+  const setSfxVolume = useSoundStore((state) => state.setSfxVolume);
 
-  const globalMusicMuted = useMediaStoreSelectors.use.globalMusicMuted();
-  const setGlobalMusicMuted = useMediaStoreSelectors.use.setGlobalMusicMuted();
-  const musicVolume = useMediaStoreSelectors.use.musicVolume();
-  const setMusicVolume = useMediaStoreSelectors.use.setMusicVolume();
-  const spotifyVolume = useMediaStoreSelectors.use.spotifyVolume();
-  const setSpotifyVolume = useMediaStoreSelectors.use.setSpotifyVolume();
+  const globalMusicMuted = useMediaStore((state) => state.globalMusicMuted);
+  const setGlobalMusicMuted = useMediaStore(
+    (state) => state.setGlobalMusicMuted,
+  );
+  const musicVolume = useMediaStore((state) => state.musicVolume);
+  const setMusicVolume = useMediaStore((state) => state.setMusicVolume);
+  const spotifyVolume = useMediaStore((state) => state.spotifyVolume);
+  const setSpotifyVolume = useMediaStore((state) => state.setSpotifyVolume);
 
-  const reduceMotion = useSettingsStoreSelectors.use.reduceMotion();
-  const setReduceMotion = useSettingsStoreSelectors.use.setReduceMotion();
-  const wallpaperId = useSettingsStoreSelectors.use.wallpaperId();
-  const setWallpaperId = useSettingsStoreSelectors.use.setWallpaperId();
-  const accentColorId = useSettingsStoreSelectors.use.accentColorId();
-  const setAccentColorId = useSettingsStoreSelectors.use.setAccentColorId();
-  const fontSize = useSettingsStoreSelectors.use.fontSize();
-  const setFontSize = useSettingsStoreSelectors.use.setFontSize();
-  const highContrast = useSettingsStoreSelectors.use.highContrast();
-  const setHighContrast = useSettingsStoreSelectors.use.setHighContrast();
-  const wifiEnabled = useSettingsStoreSelectors.use.wifiEnabled();
-  const toggleWifi = useSettingsStoreSelectors.use.toggleWifi();
+  const reduceMotion = useSettingsStore((state) => state.reduceMotion);
+  const setReduceMotion = useSettingsStore((state) => state.setReduceMotion);
+  const wallpaperId = useSettingsStore((state) => state.wallpaperId);
+  const setWallpaperId = useSettingsStore((state) => state.setWallpaperId);
+  const accentColorId = useSettingsStore((state) => state.accentColorId);
+  const setAccentColorId = useSettingsStore((state) => state.setAccentColorId);
+  const fontSize = useSettingsStore((state) => state.fontSize);
+  const setFontSize = useSettingsStore((state) => state.setFontSize);
+  const highContrast = useSettingsStore((state) => state.highContrast);
+  const setHighContrast = useSettingsStore((state) => state.setHighContrast);
+  const wifiEnabled = useSettingsStore((state) => state.wifiEnabled);
+  const toggleWifi = useSettingsStore((state) => state.toggleWifi);
 
-  const pushNotification = useNotificationStoreSelectors.use.pushNotification();
-  const openApp = useDesktopStoreSelectors.use.openApp();
+  const pushNotification = useNotificationStore(
+    (state) => state.pushNotification,
+  );
+  const openApp = useDesktopStore((state) => state.openApp);
 
   const isReducedMotion = reduceMotion || systemReducedMotion;
   const isDarkTheme =

@@ -16,7 +16,7 @@ import {
   APP_WINDOW_DEFAULT_SIZE,
   APP_WINDOW_POSITION_RANGE,
 } from "@/constants/window-config";
-import { useDesktopStoreSelectors } from "@/store/useDesktopStore";
+import { useDesktopStore } from "@/store/useDesktopStore";
 import { useIsDarkMode } from "@/hooks/use-is-dark-mode";
 import { useUISound } from "@/hooks/useUISounds";
 
@@ -51,9 +51,9 @@ export default function Dock({ pulseContact = false }: DockProps) {
   const { isDarkMode } = useIsDarkMode();
   const { playPop } = useUISound();
 
-  const openWindows = useDesktopStoreSelectors.use.openWindows();
-  const openApp = useDesktopStoreSelectors.use.openApp();
-  const toggleLaunchpad = useDesktopStoreSelectors.use.toggleLaunchpad();
+  const openWindows = useDesktopStore((state) => state.openWindows);
+  const openApp = useDesktopStore((state) => state.openApp);
+  const toggleLaunchpad = useDesktopStore((state) => state.toggleLaunchpad);
 
   const activeAppIds = openWindows.map((w) => w.id);
 

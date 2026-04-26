@@ -5,7 +5,7 @@ import { STORAGE_KEYS } from "@/constants/storage-keys";
 import { DesktopStore } from "@/types/components/desktop";
 import { createSelectors } from "@/store/createSelectors";
 
-const useDesktopStore = create<DesktopStore>()(
+export const useDesktopStore = create<DesktopStore>()(
   persist(
     (set, get) => ({
       openWindows: [],

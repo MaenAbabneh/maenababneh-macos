@@ -8,8 +8,8 @@ import {
   APP_WINDOW_DEFAULT_SIZE,
   WINDOW_LAYOUT,
 } from "@/constants/window-config";
-import { useDesktopStoreSelectors } from "@/store/useDesktopStore";
-import { useSettingsStoreSelectors } from "@/store/useSettingsStore";
+import { useDesktopStore } from "@/store/useDesktopStore";
+import { useSettingsStore } from "@/store/useSettingsStore";
 import { useIsDarkMode } from "@/hooks/use-is-dark-mode";
 import { useUISound } from "@/hooks/useUISounds";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -38,22 +38,27 @@ export default function Window({
   } = useUISound();
 
   // Desktop state
-  const closeWindow = useDesktopStoreSelectors.use.closeWindow();
-  const focusWindow = useDesktopStoreSelectors.use.focusWindow();
-  const minimizeWindow = useDesktopStoreSelectors.use.minimizeWindow();
-  const minimizedWindowIds = useDesktopStoreSelectors.use.minimizedWindowIds();
-  const restoringWindowIds = useDesktopStoreSelectors.use.restoringWindowIds();
-  const finishRestoreWindow =
-    useDesktopStoreSelectors.use.finishRestoreWindow();
-  const openingWindowIds = useDesktopStoreSelectors.use.openingWindowIds();
-  const finishOpenWindow = useDesktopStoreSelectors.use.finishOpenWindow();
-  const closingWindowIds = useDesktopStoreSelectors.use.closingWindowIds();
-  const clearCloseRequest = useDesktopStoreSelectors.use.clearCloseRequest();
-  const setWindowPosition = useDesktopStoreSelectors.use.setWindowPosition();
-  const setWindowSize = useDesktopStoreSelectors.use.setWindowSize();
+  const closeWindow = useDesktopStore((state) => state.closeWindow);
+  const focusWindow = useDesktopStore((state) => state.focusWindow);
+  const minimizeWindow = useDesktopStore((state) => state.minimizeWindow);
+  const minimizedWindowIds = useDesktopStore(
+    (state) => state.minimizedWindowIds,
+  );
+  const restoringWindowIds = useDesktopStore(
+    (state) => state.restoringWindowIds,
+  );
+  const finishRestoreWindow = useDesktopStore(
+    (state) => state.finishRestoreWindow,
+  );
+  const openingWindowIds = useDesktopStore((state) => state.openingWindowIds);
+  const finishOpenWindow = useDesktopStore((state) => state.finishOpenWindow);
+  const closingWindowIds = useDesktopStore((state) => state.closingWindowIds);
+  const clearCloseRequest = useDesktopStore((state) => state.clearCloseRequest);
+  const setWindowPosition = useDesktopStore((state) => state.setWindowPosition);
+  const setWindowSize = useDesktopStore((state) => state.setWindowSize);
 
   // settings state
-  const reduceMotion = useSettingsStoreSelectors.use.reduceMotion();
+  const reduceMotion = useSettingsStore((state) => state.reduceMotion);
 
   // Theme
   const { isDarkMode } = useIsDarkMode();

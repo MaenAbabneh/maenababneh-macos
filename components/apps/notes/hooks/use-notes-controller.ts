@@ -1,18 +1,19 @@
 "use client";
 
 import { useState, type ChangeEvent } from "react";
-import { useNotesStoreSelectors } from "@/store/useNotesStore";
-import { useSettingsStoreSelectors } from "@/store/useSettingsStore";
+import { useNotesStore } from "@/store/useNotesStore";
+import { useSettingsStore } from "@/store/useSettingsStore";
 import type { NotesProps, ViewMode } from "@/types/apps/notes";
 
 export const useNotesController = ({ isDarkMode = true }: NotesProps) => {
-  const notes = useNotesStoreSelectors.use.notes();
-  const selectedNoteId = useNotesStoreSelectors.use.selectedNoteId();
-  const selectNote = useNotesStoreSelectors.use.selectNote();
-  const updateSelectedNoteContent =
-    useNotesStoreSelectors.use.updateSelectedNoteContent();
+  const notes = useNotesStore((state) => state.notes);
+  const selectedNoteId = useNotesStore((state) => state.selectedNoteId);
+  const selectNote = useNotesStore((state) => state.selectNote);
+  const updateSelectedNoteContent = useNotesStore(
+    (state) => state.updateSelectedNoteContent,
+  );
 
-  const reduceMotion = useSettingsStoreSelectors.use.reduceMotion();
+  const reduceMotion = useSettingsStore((state) => state.reduceMotion);
   const [viewMode, setViewMode] = useState<ViewMode>("preview");
 
   const selectedNote = notes.find((note) => note.id === selectedNoteId);

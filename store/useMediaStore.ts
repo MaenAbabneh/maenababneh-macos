@@ -35,7 +35,7 @@ type MediaActions = {
 
 export type MediaStore = MediaState & MediaActions;
 
-const useMediaStore = create<MediaStore>()(
+export const useMediaStore = create<MediaStore>()(
   persist(
     (set, get) => ({
       musicIsPlaying: false,

@@ -24,7 +24,7 @@ type SystemStore = {
   restart: () => void;
 };
 
-const useSystemStore = create<SystemStore>((set) => ({
+export const useSystemStore = create<SystemStore>((set) => ({
   systemState: "booting",
   desktopIntroNonce: 0,
   desktopIntroLastPlayedNonce: 0,

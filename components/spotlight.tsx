@@ -12,8 +12,8 @@ import {
   APP_WINDOW_DEFAULT_SIZE,
   APP_WINDOW_POSITION_RANGE,
 } from "@/constants/window-config";
-import { useDesktopStoreSelectors } from "@/store/useDesktopStore";
-import { useSettingsStoreSelectors } from "@/store/useSettingsStore";
+import { useDesktopStore } from "@/store/useDesktopStore";
+import { useSettingsStore } from "@/store/useSettingsStore";
 
 const hashString = (input: string) => {
   let hash = 0;
@@ -40,11 +40,11 @@ const getWindowPosition = (seed: string) => {
 
 export default function Spotlight() {
   // Desktop state
-  const openApp = useDesktopStoreSelectors.use.openApp();
-  const setSpotlightOpen = useDesktopStoreSelectors.use.setSpotlightOpen();
+  const openApp = useDesktopStore((state) => state.openApp);
+  const setSpotlightOpen = useDesktopStore((state) => state.setSpotlightOpen);
 
   // Settings state
-  const reduceMotion = useSettingsStoreSelectors.use.reduceMotion();
+  const reduceMotion = useSettingsStore((state) => state.reduceMotion);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedIndex, setSelectedIndex] = useState(0);

@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import TextPlugin from "gsap/TextPlugin";
 import { useUISound } from "@/hooks/useUISounds";
-import { useSettingsStoreSelectors } from "@/store/useSettingsStore";
+import { useSettingsStore } from "@/store/useSettingsStore";
 import type {
   LineAnimation,
   LineRole,
@@ -39,7 +39,7 @@ export const useTerminalController = ({ isDarkMode }: TerminalProps) => {
   const [historyIndex, setHistoryIndex] = useState(-1);
   const [isMatrixMode, setIsMatrixMode] = useState(false);
 
-  const reduceMotion = useSettingsStoreSelectors.use.reduceMotion();
+  const reduceMotion = useSettingsStore((state) => state.reduceMotion);
 
   const shouldReduceMotion = prefersReducedMotion || reduceMotion;
 

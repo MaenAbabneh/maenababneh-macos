@@ -2,17 +2,17 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AppleIcon } from "@/components/icons";
-import { useSettingsStoreSelectors } from "@/store/useSettingsStore";
-import { useSystemStoreSelectors } from "@/store/useSystemStore";
+import { useSettingsStore } from "@/store/useSettingsStore";
+import { useSystemStore } from "@/store/useSystemStore";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 
 export default function SleepScreen() {
   // System state
-  const wakeUp = useSystemStoreSelectors.use.wakeUp();
+  const wakeUp = useSystemStore((state) => state.wakeUp);
 
   // Settings state
-  const reduceMotion = useSettingsStoreSelectors.use.reduceMotion();
+  const reduceMotion = useSettingsStore((state) => state.reduceMotion);
 
   const [showWakeText, setShowWakeText] = useState(false);
 

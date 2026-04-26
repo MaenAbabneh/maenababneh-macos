@@ -16,14 +16,14 @@ import Spotlight from "@/components/spotlight";
 import SystemNotifications from "@/components/system-notifications";
 import QuickContactWidget from "@/components/quick-contact-widget";
 import ProjectFolder from "@/components/project-folder";
-import { useDesktopStoreSelectors } from "@/store/useDesktopStore";
-import { useSettingsStoreSelectors } from "@/store/useSettingsStore";
-import { useSystemStoreSelectors } from "@/store/useSystemStore";
+import { useDesktopStore } from "@/store/useDesktopStore";
+import { useSettingsStore } from "@/store/useSettingsStore";
+import { useSystemStore } from "@/store/useSystemStore";
 import { useUISound } from "@/hooks/useUISounds";
 import { useIsDarkMode } from "@/hooks/use-is-dark-mode";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { UI_MOBILE_BREAKPOINT } from "@/constants/ui-config";
-import { useNotificationStoreSelectors } from "@/store/useNotificationStore";
+import { useNotificationStore } from "@/store/useNotificationStore";
 import type { GitHubProjectSummary } from "@/types";
 import type { DesktopPosition } from "@/types/components/desktop";
 import {
@@ -39,40 +39,49 @@ export default function Desktop() {
   const [pulseContact, setPulseContact] = useState(false);
 
   // System state
-  const desktopIntroNonce = useSystemStoreSelectors.use.desktopIntroNonce();
-  const desktopIntroLastPlayedNonce =
-    useSystemStoreSelectors.use.desktopIntroLastPlayedNonce();
-  const markDesktopIntroPlayed =
-    useSystemStoreSelectors.use.markDesktopIntroPlayed();
+  const desktopIntroNonce = useSystemStore((state) => state.desktopIntroNonce);
+  const desktopIntroLastPlayedNonce = useSystemStore(
+    (state) => state.desktopIntroLastPlayedNonce,
+  );
+  const markDesktopIntroPlayed = useSystemStore(
+    (state) => state.markDesktopIntroPlayed,
+  );
 
   // Desktop state
-  const openWindows = useDesktopStoreSelectors.use.openWindows();
-  const activeWindowId = useDesktopStoreSelectors.use.activeWindowId();
-  const showLaunchpad = useDesktopStoreSelectors.use.showLaunchpad();
-  const showControlCenter = useDesktopStoreSelectors.use.showControlCenter();
-  const showSpotlight = useDesktopStoreSelectors.use.showSpotlight();
-  const toggleSpotlight = useDesktopStoreSelectors.use.toggleSpotlight();
-  const desktopBackgroundClick =
-    useDesktopStoreSelectors.use.desktopBackgroundClick();
-  const openApp = useDesktopStoreSelectors.use.openApp();
-  const projectFolderPositions =
-    useDesktopStoreSelectors.use.projectFolderPositions();
-  const setProjectFolderPosition =
-    useDesktopStoreSelectors.use.setProjectFolderPosition();
-  const contactFolderPosition =
-    useDesktopStoreSelectors.use.contactFolderPosition();
-  const setContactFolderPosition =
-    useDesktopStoreSelectors.use.setContactFolderPosition();
+  const openWindows = useDesktopStore((state) => state.openWindows);
+  const activeWindowId = useDesktopStore((state) => state.activeWindowId);
+  const showLaunchpad = useDesktopStore((state) => state.showLaunchpad);
+  const showControlCenter = useDesktopStore((state) => state.showControlCenter);
+  const showSpotlight = useDesktopStore((state) => state.showSpotlight);
+  const toggleSpotlight = useDesktopStore((state) => state.toggleSpotlight);
+  const desktopBackgroundClick = useDesktopStore(
+    (state) => state.desktopBackgroundClick,
+  );
+  const openApp = useDesktopStore((state) => state.openApp);
+  const projectFolderPositions = useDesktopStore(
+    (state) => state.projectFolderPositions,
+  );
+  const setProjectFolderPosition = useDesktopStore(
+    (state) => state.setProjectFolderPosition,
+  );
+  const contactFolderPosition = useDesktopStore(
+    (state) => state.contactFolderPosition,
+  );
+  const setContactFolderPosition = useDesktopStore(
+    (state) => state.setContactFolderPosition,
+  );
 
   // Settings state
-  const screenBrightness = useSettingsStoreSelectors.use.screenBrightness();
-  const reduceMotion = useSettingsStoreSelectors.use.reduceMotion();
+  const screenBrightness = useSettingsStore((state) => state.screenBrightness);
+  const reduceMotion = useSettingsStore((state) => state.reduceMotion);
 
   // Theme
   const { isDarkMode } = useIsDarkMode();
 
   // Notifications
-  const pushNotification = useNotificationStoreSelectors.use.pushNotification();
+  const pushNotification = useNotificationStore(
+    (state) => state.pushNotification,
+  );
 
   // Refs and other state
   const rootRef = useRef<HTMLDivElement>(null);

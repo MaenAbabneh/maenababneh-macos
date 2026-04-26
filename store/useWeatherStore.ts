@@ -23,7 +23,7 @@ type WeatherActions = {
 
 export type WeatherStore = WeatherState & WeatherActions;
 
-const useWeatherStore = create<WeatherStore>()(
+export const useWeatherStore = create<WeatherStore>()(
   persist(
     (set) => ({
       selectedCity: DEFAULT_WEATHER_CITY,
